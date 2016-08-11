@@ -18,3 +18,11 @@ function control_accordion(id) {
         x.className = x.className.replace(" w3-show", "");
     }
 }
+
+$(document).ready(function() {
+  $('#nav-container').load('main-menu.html', function(){
+    var idMenu = $('#nav-container').attr('class');
+    console.log(idMenu);
+    $('#'+idMenu).addClass('w3-text-teal');
+  });
+});

@@ -11,27 +11,7 @@
 <body class="w3-light-grey w3-content" style="max-width:1600px">
 
 <!-- Sidenav/menu -->
-<nav class="w3-sidenav w3-collapse w3-white w3-animate-left" style="z-index:3;width:300px;" id="mySidenav"><br>
-  <div class="w3-container">
-    <a href="#" onclick="w3_close()" class="w3-hide-large w3-right w3-jumbo w3-padding" title="close menu">
-      <i class="fa fa-remove"></i>
-    </a>
-    <img src="img_avatar_g2.jpg" style="width:45%;" class="w3-round"><br><br>
-    <h4 class="w3-padding-0"><b>JONGLAGE</b></h4>
-    <p class="w3-text-grey">Un blog pour explorer des millions de possibilités</p>
-  </div>
-  <a href="#" class="w3-padding w3-text-teal">HOME</a>
-  <a href="#" class="w3-padding">JOURNAL DU JONGLEUR</a>
-  <a href="#" class="w3-padding">ACROBATIE</a>
-  <a href="balles.html" class="w3-padding">BALLES</a>
-  <a href="#" class="w3-padding">BALLE CONTACT</a>
-  <a href="#" class="w3-padding">BATON DU DIABLE</a>
-  <a href="#" class="w3-padding">BOLAS</a>
-  <a href="#" class="w3-padding">CHAPEAU</a>
-  <a href="#" class="w3-padding">DIABOLO</a>
-  <a href="#" class="w3-padding">MASSUE</a>
-  <a href="#" class="w3-padding">STAFF</a>
-</nav>
+<div id="nav-container" class="home"></div>
 
 <!-- Overlay effect when opening sidenav on small screens -->
 <div class="w3-overlay w3-hide-large w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
@@ -124,18 +104,8 @@
 <!-- End page content -->
 </div>
 
-<script>
-// Script to open and close sidenav
-function w3_open() {
-    document.getElementById("mySidenav").style.display = "block";
-    document.getElementById("myOverlay").style.display = "block";
-}
-
-function w3_close() {
-    document.getElementById("mySidenav").style.display = "none";
-    document.getElementById("myOverlay").style.display = "none";
-}
-</script>
+<script src="js/jquery-3.1.0.min.js"></script>
+<script src="js/main.js"></script>
 
 </body>
 </html>
