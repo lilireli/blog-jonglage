@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html>
-<title>Blog sur le jonglage</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
-<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
-<link rel="stylesheet" href="css/main.css">
+
+<head>
+  <title>Blog sur le jonglage</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="lib/react-15.3.0/build/react.js"></script>
+  <script src="lib/react-15.3.0/build/react-dom.js"></script>
+  <script src="https://npmcdn.com/babel-core@5.8.38/browser.min.js"></script>
+</head>
 
 <body class="w3-light-grey w3-content" style="max-width:1600px">
 
@@ -47,12 +53,7 @@
         </button>
         <div id="Demo1" class="w3-accordion-content w3-container w3-white">
           <p>Some text..</p>
-          <div class="w3-row">
-            <div class="w3-container w3-margin-bottom w3-pale-blue w3-col s3" style="cursor: pointer;" onclick="window.location='3-balles.html';">
-              <h2>Title</h2>
-              <p>Praesent tincidunt sed tellus ut rutrum. Sed vitae justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla. Lorem ipsum dolor sit amet et calerare out if ned.</p>
-            </div>
-          </div>
+          <div id="example" class="w3-row"></div>
         </div>
         <button onclick="control_accordion('Demo2')" class="w3-btn-block w3-left-align">
           Open Section 2
@@ -81,6 +82,7 @@
 
 <script src="js/jquery-3.1.0.min.js"></script>
 <script src="js/main.js"></script>
+<script type="text/babel" src="js/render-articles-small.js"></script>
 
 </body>
 </html>

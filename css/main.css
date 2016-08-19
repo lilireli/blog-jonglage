@@ -32,3 +32,7 @@ footer {
 .w3-sidenav a,.w3-sidenav h4 {
   font-weight:bold;
 }
+
+.article-small {
+  cursor: pointer;
+}
