@@ -16,5 +16,5 @@ data =
         }
     ],
     "content": "tout plein de joli texte <p>Praesent tincidunt sed tellus ut rutrum. Sed vitae justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla. Lorem ipsum dolor sit amet et calerare out if ned.</p>",
-    "pageType": "balles"
+    "page_type": "balles"
   }
