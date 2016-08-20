@@ -8,21 +8,22 @@ from flask import Flask, Response, render_template, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from blogapp.models import Category, Article
+from models import Category, Article
 
 # Information de connexion
 engine = create_engine('mysql://pierrick:@localhost/jonglage')
 Session = sessionmaker(bind=engine)
 session = Session()
 
-app = Flask('__app__')
+app = Flask('__app__', template_folder='blogapp/templates',
+            static_folder='blogapp/static')
 #app.secret_key = 'test'
 
 NB_ARTICLES_BY_PAGE = 20
 
 @app.route('/')
 def index():
-    return 'Hello'
+    return render_template('index.html')
 
 # Renvoie la page HTML de la catégorie
 @app.route('/categories/<category>')
@@ -33,7 +34,7 @@ def get_category(category):
     # Vérifier que la catégorie existe
     if len(categories) == 1:
     # Renvoyer les informations ou une erreur
-        return category
+        return render_template(category + '.html')
     else:
         return 'error'
 
@@ -65,6 +66,3 @@ def create_article():
         session.add(article)
         session.commit()
         return Response("Article enregistré")
-
-if __name__ == '__main__':
-    app.run(debug=True)

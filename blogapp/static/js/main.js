@@ -20,7 +20,7 @@ function control_accordion(id) {
 }
 
 $(document).ready(function() {
-  $('#nav-container').load('main-menu.html', function(){
+  $('#nav-container').load('/static/main-menu.html', function(){
     var idMenu = $('#nav-container').attr('class');
     $('#'+idMenu).addClass('w3-text-teal');
   });

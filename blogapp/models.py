@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date
 
 #Categories
-CATEGORIES = ['staff', 'balles']
+CATEGORIES = ['acrobatie', 'balles', 'staff']
 
 # Information de connexion
 engine = create_engine('mysql://pierrick:@localhost/jonglage')
