@@ -4,6 +4,7 @@ var Menu = React.createClass({
         document.getElementById("myOverlay").style.display = "none";
     },
     render: function() {
+        var typePage = this.props.data.page_type;
         return (
           <div>
             <nav className="w3-sidenav w3-collapse w3-white w3-animate-left w3-padding-top" id="mySidenav">
@@ -15,17 +16,17 @@ var Menu = React.createClass({
                 <h4 className="w3-padding-0"><b>JONGLAGE</b></h4>
                 <p className="w3-text-grey">Un blog pour explorer des millions de possibilités</p>
               </div>
-              <a href="/"                            className="w3-padding {if (this.props.data.pageType == 'home') {'w3-text-teal'}}">HOME</a>
-              <a href="/categories/journal"          className="w3-padding {if (this.props.data.pageType == 'journal-du-jongleur') {'w3-text-teal'}}">JOURNAL DE JONGLEUR</a>
-              <a href="/categories/acrobatie"        className="w3-padding {if (this.props.data.pageType == 'acrobatie') {'w3-text-teal'}}">ACROBATIE</a>
-              <a href="/categories/balles"           className="w3-padding {if (this.props.data.pageType == 'balles') {'w3-text-teal'}}">BALLES</a>
-              <a href="/categories/balle-contact"    className="w3-padding {if (this.props.data.pageType == 'balle-contact') {'w3-text-teal'}}">BALLE CONTACT</a>
-              <a href="/categories/baton-du-diable"  className="w3-padding {if (this.props.data.pageType == 'baton-du-diable') {'w3-text-teal'}}">BATON DU DIABLE</a>
-              <a href="/categories/bolas"            className="w3-padding {if (this.props.data.pageType == 'bolas') {'w3-text-teal'}}">BOLAS</a>
-              <a href="/categories/chapeau"          className="w3-padding {if (this.props.data.pageType == 'home') {'w3-text-teal'}}">CHAPEAU</a>
-              <a href="/categories/diabolo"          className="w3-padding {if (this.props.data.pageType == 'home') {'w3-text-teal'}}">DIABOLO</a>
-              <a href="/categories/massue"           className="w3-padding {if (this.props.data.pageType == 'home') {'w3-text-teal'}}">MASSUE</a>
-              <a href="/categories/staff"            className="w3-padding {if (this.props.data.pageType == 'home') {'w3-text-teal'}}">STAFF</a>
+              <a href="/"                            className={"w3-padding " + ((typePage == 'home') ? "w3-text-teal" : "")} >HOME</a>
+              <a href="/categories/journal"          className={"w3-padding " + ((typePage == 'journal') ? "w3-text-teal" : "")}>JOURNAL DE JONGLEUR</a>
+              <a href="/categories/acrobatie"        className={"w3-padding " + ((typePage == 'acrobatie') ? "w3-text-teal" : "")}>ACROBATIE</a>
+              <a href="/categories/balles"           className={"w3-padding " + ((typePage == 'balles') ? "w3-text-teal" : "")}>BALLES</a>
+              <a href="/categories/balle-contact"    className={"w3-padding " + ((typePage == 'balle-contact') ? "w3-text-teal" : "")}>BALLE CONTACT</a>
+              <a href="/categories/baton-du-diable"  className={"w3-padding " + ((typePage == 'baton-du-diable') ? "w3-text-teal" : "")}>BATON DU DIABLE</a>
+              <a href="/categories/bolas"            className={"w3-padding " + ((typePage == 'bolas') ? "w3-text-teal" : "")}>BOLAS</a>
+              <a href="/categories/chapeau"          className={"w3-padding " + ((typePage == 'chapeau') ? "w3-text-teal" : "")}>CHAPEAU</a>
+              <a href="/categories/diabolo"          className={"w3-padding " + ((typePage == 'diabolo') ? "w3-text-teal" : "")}>DIABOLO</a>
+              <a href="/categories/massue"           className={"w3-padding " + ((typePage == 'massue') ? "w3-text-teal" : "")}>MASSUE</a>
+              <a href="/categories/staff"            className={"w3-padding " + ((typePage == 'staff') ? "w3-text-teal" : "")}>STAFF</a>
             </nav>
 
             { /* Overlay effect when opening sidenav on small screens */ }

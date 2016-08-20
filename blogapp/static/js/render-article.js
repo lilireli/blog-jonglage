@@ -35,5 +35,3 @@ ReactDOM.render(
   <Article data={data} />,
   document.getElementById('content')
 );
-
-$('nav-container').addClass(data.category);
