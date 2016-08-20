@@ -3,7 +3,7 @@
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date, Table
 
 #Categories
 CATEGORIES = ['acrobatie', 'balles', 'staff']
@@ -12,6 +12,10 @@ CATEGORIES = ['acrobatie', 'balles', 'staff']
 engine = create_engine('mysql://pierrick:@localhost/jonglage')
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
+
+article_to_tag = Table('article_to_tag', Base.metadata,
+                       Column('article_id', String(50), ForeignKey('articles.id')),
+                       Column('tag_name', String(50), ForeignKey('tags.name')))
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -36,14 +40,16 @@ class Article(Base):
     category_name = Column(String(30), ForeignKey('categories.name'))
 
     category = relationship('Category', back_populates='articles')
+    tags = relationship('Tag', secondary=article_to_tag,
+                        back_populates="articles")
 
-"""class Tag(Base):
+class Tag(Base):
     __tablename__ = 'tags'
 
-    name = Column(String(30), primary_key=True)
-    article_name = Column(String(50), ForeignKey('articles.name'))
+    name = Column(String(50), primary_key=True)
 
-    articles = relationship('Article', back_populates='tags')"""
+    articles = relationship('Article', secondary=article_to_tag,
+                            back_populates='tags')
     
 
 if __name__ == '__main__':

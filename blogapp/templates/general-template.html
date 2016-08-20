@@ -39,12 +39,14 @@
 </div>
 
 <script>
+	var data = {{data|safe}}
 </script>
 <script src="/static/lib/react-15.3.0/react.js"></script>
 <script src="/static/lib/react-15.3.0/react-dom.js"></script>
 <script src="/static/lib/babel-core-browser.min.js"></script>
 <script src="/static/js/main.js"></script>
 <script type="text/babel" src="/static/js/render-skeleton.js"></script>
+<script type="text/babel" src="/static/js/render-{{type_js}}.js"></script>
 
 </body>
 </html>
