@@ -22,10 +22,12 @@ app = Flask('__app__', template_folder='blogapp/templates',
 NB_ARTICLES_BY_PAGE = 20
 
 @app.route('/')
-def index():
+@app.route('/page/<int:page>')
+def index(page=1):
     return render_template('index.html')
 
-# Renvoie la page HTML de la catégorie
+
+# Renvoie la catégorie avec tous ses articles
 @app.route('/categories/<category>')
 def get_category(category):
     # Récupérer les informations concernant la catégorie
@@ -38,32 +40,30 @@ def get_category(category):
     else:
         return 'error'
 
-@app.route('/articles/<category>/list_articles')
-
-@app.route('/articles/list_articles/<page>')
 
 @app.route('/articles/<article>')
 def get_article(article):
     # Récupérer les informations concernant l'article
-    articles = glob.glob('articles/{article}.json'.format(article=article))
-    if articles:
-        with open(articles[0]) as input:
-            article_dict = json.load(input)
-        return Response(str(article_dict), mimetype='json')
+    query = session.query(Article.name).filter_by(id=article)
+    articles = query.all()
+    # Renvoyer les informations ou une erreur
+    if len(articles) == 1:
+        return 'Go'
     else:
         return 'error'
-    # Renvoyer les informations ou une erreur
 
 @app.route('/articles/creation', methods=["GET", "POST"])
 def create_article():
     if request.method == "POST" and form.validate():
         now = datetime.datetime.now()
-        #url = lower(form.name.data)
+        id = lower(form.name.data)
+        (id.replace(' ', '-').replace('é', 'e').replace('è', 'e')
+           .replace('à', 'a').replace('ê', 'e').replace('ê', 'e'))
         article = Article(
             name=form.name.data, author=form.author.data,
             content=form.content.data, category_name=form.category.data,
             creation_date=now, last_modification_date=now,
-            url=form.name.data)
+            id=id)
         session.add(article)
         session.commit()
         return Response("Article enregistré")

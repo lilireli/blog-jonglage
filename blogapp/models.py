@@ -26,7 +26,7 @@ class Category(Base):
 class Article(Base):
     __tablename__ = 'articles'
 
-    url = Column(String(50), primary_key=True)
+    id = Column(String(50), primary_key=True)
     name = Column(String(50))
     author = Column(String(30))
     content = Column(String(10000))
