@@ -37,13 +37,13 @@ class Article(Base):
 
     category = relationship('Category', back_populates='articles')
 
-class Tag(Base):
+"""class Tag(Base):
     __tablename__ = 'tags'
 
     name = Column(String(30), primary_key=True)
     article_name = Column(String(50), ForeignKey('articles.name'))
 
-    articles = relationship('Article', back_populates='tags')
+    articles = relationship('Article', back_populates='tags')"""
     
 
 if __name__ == '__main__':

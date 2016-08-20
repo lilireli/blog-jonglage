@@ -58,6 +58,7 @@ def get_article(article):
 def create_article():
     if request.method == "POST" and form.validate():
         now = datetime.datetime.now()
+        #url = lower(form.name.data)
         article = Article(
             name=form.name.data, author=form.author.data,
             content=form.content.data, category_name=form.category.data,
