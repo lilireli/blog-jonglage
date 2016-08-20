@@ -6,7 +6,7 @@ var Tags = React.createClass({
       );
     });
     return (
-      <span className="tagList">
+      <span>
         {tagNodes}
       </span>
     );
@@ -14,21 +14,21 @@ var Tags = React.createClass({
 });
 
 var Article = React.createClass({
-    render: function() {
-        return (
-          <div>
-            <p>
-              <span className="w3-teal w3-padding-small uppercase margin-small-right">{this.props.data.category}</span>
-              <Tags data={this.props.data.tags} />
-            </p>
-            <h1><b>{this.props.data.name}</b></h1>
-            <p className="w3-text-grey">Par <b>{this.props.data.author}</b> le {this.props.data.creation_date} (modifié le {this.props.data.last_modification_date})</p>
-            <div className="w3-section w3-bottombar"></div>
+  render: function() {
+    return (
+      <div>
+        <p>
+          <span className="w3-teal w3-padding-small uppercase margin-small-right">{this.props.data.category}</span>
+          <Tags data={this.props.data.tags} />
+        </p>
+        <h1><b>{this.props.data.name}</b></h1>
+        <p className="w3-text-grey">Par <b>{this.props.data.author}</b> le {this.props.data.creation_date} (modifié le {this.props.data.last_modification_date})</p>
+        <div className="w3-section w3-bottombar"></div>
 
-            <div dangerouslySetInnerHTML={{__html: this.props.data.content}}></div>
-          </div>
-        );
-    }
+        <div dangerouslySetInnerHTML={{__html: this.props.data.content}}></div>
+      </div>
+    );
+  }
 });
 
 ReactDOM.render(
