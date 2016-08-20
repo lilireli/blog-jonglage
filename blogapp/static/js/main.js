@@ -1,14 +1,3 @@
-// open and close sidenav
-function w3_open() {
-    document.getElementById("mySidenav").style.display = "block";
-    document.getElementById("myOverlay").style.display = "block";
-}
-
-function w3_close() {
-    document.getElementById("mySidenav").style.display = "none";
-    document.getElementById("myOverlay").style.display = "none";
-}
-
 // open and close accordions
 function control_accordion(id) {
     var x = document.getElementById(id);
@@ -18,10 +7,3 @@ function control_accordion(id) {
         x.className = x.className.replace(" w3-show", "");
     }
 }
-
-$(document).ready(function() {
-  $('#nav-container').load('main-menu.html', function(){
-    var idMenu = $('#nav-container').attr('class');
-    $('#'+idMenu).addClass('w3-text-teal');
-  });
-});

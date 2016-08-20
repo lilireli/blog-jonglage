@@ -11,46 +11,40 @@
 <body class="w3-light-grey w3-content" style="max-width:1600px">
 
 <!-- Sidenav/menu -->
-<div id="nav-container" class="balles"></div>
-
-<!-- Overlay effect when opening sidenav on small screens -->
-<div class="w3-overlay w3-hide-large w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+<div id="nav-container">
+  <!-- Content will be filled by React -->
+</div>
 
 <!-- !PAGE CONTENT! -->
 <div class="w3-main" style="margin-left:300px">
 
-  <!-- Header -->
-  <header class="w3-container">
-    <a href="#"><img src="img_avatar_g2.jpg" style="width:65px;" class="w3-circle w3-right w3-margin w3-hide-large w3-hover-opacity"></a>
-    <span class="w3-opennav w3-hide-large w3-xxlarge w3-hover-text-grey" onclick="w3_open()"><i class="fa fa-bars"></i></span>
-    <p><span class="w3-teal w3-padding-small">BALLES</span> <span class="w3-dark-grey w3-round-xlarge w3-padding-small">tag1</span> <span class="w3-dark-grey w3-round-xlarge w3-padding-small">tag2</span></p>
-    <h1><b>3 balles</b></h1>
-    <p class="w3-text-grey">Par <b>Bwatt</b> le 22 janvier 2016 (modifié le 22 mars 2016)</p>
-    <div class="w3-section w3-bottombar"></div>
-  </header>
+  <!-- Header Menu for Mobile Devices-->
+  <div id="nav-container-mobile">
+    <!-- Content will be filled by React -->
+  </div>
 
   <!-- Content of article -->
-  <div class="w3-container">
-    <p>Praesent tincidunt sed tellus ut rutrum. Sed vitae justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla. Lorem ipsum dolor sit amet et calerare out if ned.</p>
+  <div id="content" class="w3-container">
+    <!-- Content will be filled by React -->
   </div>
 
   <div class="w3-padding-32"></div>
 
   <!-- Footer -->
-  <footer class="w3-container w3-padding-32 w3-white">
-  <div class="w3-row-padding">
-    <div class="w3-third">
-      <p>ABOUT</p>
-      <p>Powered by <a href="http://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
-    </div>
+  <div id="footer">
+    <!-- Content will be filled by React -->
   </div>
-  </footer>
 
 <!-- End page content -->
 </div>
 
-<script src="lib/jquery-3.1.0.min.js"></script>
+<script src="lib/react-15.3.0/react.js"></script>
+<script src="lib/react-15.3.0/react-dom.js"></script>
+<script src="https://npmcdn.com/babel-core@5.8.38/browser.min.js"></script>
 <script src="js/main.js"></script>
+<script src="../../articles/article.js"></script>
+<script type="text/babel" src="js/render-skeleton.js"></script>
+<script type="text/babel" src="js/render-article.js"></script>
 
 </body>
 </html>

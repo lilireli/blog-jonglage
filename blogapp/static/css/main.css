@@ -29,8 +29,33 @@ footer {
 	bottom: 0;
 }
 
+.uppercase {
+  text-transform: uppercase;
+}
+
+.margin-small-right {
+  margin-right: 8px;
+}
+
+.w3-sidenav {
+  z-index:3;
+  width:300px;
+}
+
 .w3-sidenav a,.w3-sidenav h4 {
   font-weight:bold;
+}
+
+.w3-sidenav img {
+  width:45%;
+}
+
+#nav-container-mobile img {
+  width:65px;
+}
+
+.w3-overlay {
+  cursor:pointer;
 }
 
 .article-small {
