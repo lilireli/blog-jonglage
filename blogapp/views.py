@@ -1,10 +1,10 @@
 # coding: utf-8
 
 import json
-import glob
 import datetime
 import unicodedata
 import locale
+from collections import defaultdict
 
 from flask import Flask, Response, render_template, request
 from sqlalchemy import create_engine
@@ -19,12 +19,12 @@ session = Session()
 
 app = Flask('__app__', template_folder='blogapp/templates',
             static_folder='blogapp/static')
-#app.secret_key = 'test'
 
 locale.setlocale(locale.LC_TIME, "fr_FR.utf8")
 
 NB_ARTICLES_BY_PAGE = 20
 DATE_STRING_FORMAT = "%d %b %Y"
+
 
 @app.route('/')
 @app.route('/page/<int:page>')
@@ -49,33 +49,25 @@ def get_category(category):
 
     # Vérifier que la catégorie existe
     if len(categories) == 1:
-    # Renvoyer les informations ou une erreur
+        # Renvoyer les informations ou une erreur
         category = categories[0]
+        articles = category.articles
+        articles_by_tags = defaultdict(list)
+        for article in articles:
+            for tag in article.tags:
+                articles_by_tags[(tag.id, tag.name)].append(
+                    {"name": article.name, "description": article.description,
+                     "id": article.id})
+        tags = [{"name": k[0], "description": k[1], "articles": v}
+                for k, v in articles_by_tags.items()]
         data = {
             "page_type": category.id,
             "name": category.name,
             "description": category.description,
             "beginner_links": beginner_links,
-            "tags": [
-              {
-                "name": "1-balles",
-                "description": "Blabla de description",
-                "articles": [
-                  {
-                    "name": "Apprendre le 1 balles",
-                    "description": "Longue description de comment faire",
-                    "id": "apprendre-le-1-balles"
-                  },
-                  {
-                    "name": "Apprendre le 2 balles",
-                    "description": "Longue description de comment faire",
-                    "id": "2-balles.html"
-                  },
-                ]
-              }
-            ]
+            "tags": tags
           }
-        return render_template('general-template.html', data=data, 
+        return render_template('general-template.html', data=data,
                                type_js='category')
     else:
         return 'error'
@@ -99,13 +91,15 @@ def get_article(article):
             "page_type": article.category.name,
             "content": article.content,
             "creation_date": article.creation_date.strftime(DATE_STRING_FORMAT),
-            "last_modification_date": article.last_modification_date.strftime(DATE_STRING_FORMAT),
+            "last_modification_date": article.last_modification_date.strftime(
+                DATE_STRING_FORMAT),
             "tags": tags,
         }
         return render_template('general-template.html', data=json.dumps(data),
-                                   type_js='article')
+                               type_js='article')
     else:
         return 'error'
+
 
 @app.route('/articles/creation', methods=["POST"])
 def create_article():
@@ -131,10 +125,10 @@ def create_article():
                        else False)
         article = Article(
             name=request.form['name'], author=request.form['author'],
-            content=request.form['content'], category_id=request.form['category'],
-            creation_date=now, last_modification_date=now,
-            description=request.form['description'], id=id_art, tags=tags,
-            is_beginner=is_beginner)
+            content=request.form['content'],
+            category_id=request.form['category'], creation_date=now,
+            last_modification_date=now, is_beginner=is_beginner,
+            description=request.form['description'], id=id_art, tags=tags)
         session.add(article)
         session.commit()
         return Response("Article enregistré")
