@@ -75,7 +75,7 @@ def get_category(category):
               }
             ]
           }
-        return render_template('general-template.html', data=data, 
+        return render_template('general-template.html', data=data,
                                type_js='category')
     else:
         return 'error'
@@ -107,7 +107,7 @@ def get_article(article):
     else:
         return 'error'
 
-@app.route('/articles/creation', methods=["POST"])
+@app.route('/articles/create', methods=["POST"])
 def create_article():
     if request.method == "POST":
         now = datetime.datetime.now()

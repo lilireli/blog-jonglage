@@ -9,7 +9,7 @@ info:
 host: localhost:5000
 # array of all schemes that your API supports
 schemes:
-  - https
+  - http
 # will be prefixed to all paths
 basePath: /
 produces:
@@ -18,28 +18,31 @@ paths:
   /:
     get:
       summary: HTML of the website homepage
+      produces:
+        - text/HTML
       tags:
         - Homepage
   /categories/{id}:
     get:
       summary: HTML for each category
+      produces:
+        - text/HTML
       parameters:
         - name: id
-          in: query
+          in: path
           description: Identifier of the category.
           required: true
           type: string
       tags:
         - Categories
-      responses:
-        200:
-          description: An HTML for one Category
   /articles/{id}:
     get:
       summary: Send all the content of an article
+      produces:
+        - text/HTML
       parameters:
         - name: id
-          in: query
+          in: path
           description: Identifier of the article.
           required: true
           type: string
@@ -50,25 +53,55 @@ paths:
       summary: Create one new article
       parameters:
         - name: name
+          in: formData
+          description: Name of the article.
+          required: true
+          type: string
         - name: author
+          in: formData
+          description: Author of the article.
+          required: true
+          type: string
         - name: description
+          in: formData
+          description: Description of the article.
+          required: true
+          type: string
         - name: content
+          in: formData
+          description: Content of the article.
+          required: true
+          type: string
         - name: category
+          in: formData
+          description: Category of the article.
+          required: true
+          type: string
         - name: tags
+          in: formData
+          description: List of tags for the article. Separe all tags by comas like "tag1, tag2"
+          required: true
+          type: string
+        - name: is_beginner
+          in: formData
+          description: Defines if the article is destined to beginners or not
+          required: true
+          type: boolean
+          default: False
       tags:
         - Articles
   /articles/modify:
     post:
-      summary: Modify one existing article
+      summary: Modify one existing article (non working)
       tags:
         - Articles
   /articles/delete:
     post:
-      summary: Delete one existinf article
+      summary: Delete one existinf article (non working)
       tags:
         - Articles
   /tags/create:
     post:
-      summary: Create one new tag
+      summary: Create one new tag (non working)
       tags:
         - Tags

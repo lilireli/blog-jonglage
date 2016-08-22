@@ -14,5 +14,4 @@ Après avoir activé l'environnement virtuel, faire `python web.py`
 
 # Consultation de l'API
 
-Aller dans le dossier swagger et lancer un serveur.
-Par exemple lancer `python -m SimpleHTTPServer 8000`
+Consulter la page /static/swagger/index.html
