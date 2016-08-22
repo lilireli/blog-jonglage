@@ -101,7 +101,7 @@ def get_article(article):
         return 'error'
 
 
-@app.route('/articles/creation', methods=["POST"])
+@app.route('/articles/create', methods=["POST"])
 def create_article():
     if request.method == "POST":
         now = datetime.datetime.now()
