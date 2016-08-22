@@ -15,13 +15,18 @@ basePath: /
 produces:
   - application/json
 paths:
-  /categories/category:
+  /:
+    get:
+      summary: HTML of the website homepage
+      tags:
+        - Homepage
+  /categories/{id}:
     get:
       summary: HTML for each category
       parameters:
-        - name: name
+        - name: id
           in: query
-          description: Name of the category.
+          description: Identifier of the category.
           required: true
           type: string
       tags:
@@ -29,30 +34,41 @@ paths:
       responses:
         200:
           description: An HTML for one Category
-  /articles/name:
+  /articles/{id}:
     get:
       summary: Send all the content of an article
       parameters:
-        - name: name
+        - name: id
           in: query
-          description: Name of the article.
+          description: Identifier of the article.
           required: true
           type: string
       tags:
         - Articles
-  /articles/list-articles:
-    get:
-      summary: Send all the articles without their content
-      tags:
-        - Articles
-  /articles/category/list-articles:
-    get:
-      summary: Send all the articles of one category without their content
+  /articles/create:
+    post:
+      summary: Create one new article
       parameters:
+        - name: name
+        - name: author
+        - name: description
+        - name: content
         - name: category
-          in: query
-          description: Name of the category.
-          required: true
-          type: string
+        - name: tags
       tags:
         - Articles
+  /articles/modify:
+    post:
+      summary: Modify one existing article
+      tags:
+        - Articles
+  /articles/delete:
+    post:
+      summary: Delete one existinf article
+      tags:
+        - Articles
+  /tags/create:
+    post:
+      summary: Create one new tag
+      tags:
+        - Tags

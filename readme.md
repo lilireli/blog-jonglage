@@ -10,4 +10,9 @@ Ce projet concerne la création d'un blog sur le jonglage.
 
 # Lancement du serveur
 
-Après avoir activer l'environnement virtuel, faire `python web.py`
+Après avoir activé l'environnement virtuel, faire `python web.py`
+
+# Consultation de l'API
+
+Aller dans le dossier swagger et lancer un serveur.
+Par exemple lancer `python -m SimpleHTTPServer 8000`
