@@ -22,6 +22,7 @@ paths:
         - text/HTML
       tags:
         - Homepage
+
   /categories/{id}:
     get:
       summary: HTML for each category
@@ -35,6 +36,7 @@ paths:
           type: string
       tags:
         - Categories
+
   /articles/{id}:
     get:
       summary: Send all the content of an article
@@ -48,6 +50,7 @@ paths:
           type: string
       tags:
         - Articles
+
   /articles/create:
     post:
       summary: Create one new article
@@ -90,18 +93,89 @@ paths:
           default: False
       tags:
         - Articles
+
   /articles/modify:
     post:
       summary: Modify one existing article (non working)
       tags:
         - Articles
+
   /articles/delete:
     post:
       summary: Delete one existinf article (non working)
       tags:
         - Articles
+
   /tags/create:
     post:
       summary: Create one new tag (non working)
+      parameters:
+        - name: name
+          in: formData
+          description: Name of the tag
+          required: true
+          type: string
+        - name: id
+          in: formData
+          description: Id of the tag
+          required: true
+          type: string
+        - name: description
+          in: formData
+          required: false
+          type: string
       tags:
         - Tags
+
+  /tags/{id}/json:
+    get:
+      summary: Retrieve one tag by id
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the tag.
+          required: true
+          type: string
+      tags:
+        - Tags
+
+  /tags/{id}/modify:
+    post:
+      summary: Modify one tag by id
+      produces:
+        - text/html
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the tag.
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: The name of the tag.
+          required: False
+          type: string
+        - name: description
+          in: formData
+          description: Description of the tag.
+          required: False
+          type: string
+      tags:
+        - Tags
+
+  /tags/{id}/delete:
+    delete:
+      summary: Delete one tag
+      produces:
+        - test/html
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the tag.
+          required: true
+          type: string
+      tags:
+        - Tags
+        

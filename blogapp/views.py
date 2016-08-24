@@ -159,3 +159,58 @@ def create_article():
         session.add(article)
         session.commit()
         return Response("Article enregistré")
+
+
+@app.route('/tags/<tag_id>/json')
+def get_json_tag(tag_id):
+    query = session.query(Tag).filter_by(id=tag_id)
+    tags = query.all()
+    if len(tags) == 1:
+        tag = tags[0]
+        tag_dict = {"name": tag.name, "id": tag.id,
+                    "description": tag.description}
+        return str(tag_dict)
+    else:
+        return 'error'
+
+
+@app.route('/tags/<tag_id>/modify', methods=['POST'])
+def modify_tag(tag_id):
+    if request.method == 'POST':
+        query = session.query(Tag).filter_by(id=tag_id)
+        tags = query.all()
+        if len(tags) == 1:
+            tag = tags[0]
+            tag.name = (request.form['name']
+                        if 'name' in request.form else tag.name)
+            tag.description = (request.form['description']
+                               if 'description' in request.form
+                               else tag.description)
+            session.commit()
+            return 'Tag modifié'
+        else:
+            return 'error'
+
+@app.route('/tags/create', methods=['POST'])
+def create_tag():
+    if request.method == 'POST':
+        tag = Tag(name=request.form['name'],
+                  description=request.form['description'],
+                  id=request.form['name'].lower())
+        session.add(tag)
+        session.commit()
+        return Response("Tag enregistré")
+
+
+@app.route('/tags/<tag_id>/delete', methods=['DELETE'])
+def delete_tag(tag_id):
+    if request.method == 'DELETE':
+        query = session.query(Tag).filter_by(id=tag_id)
+        tags = query.all()
+        if len(tags) == 1:
+            tag = tags[0]
+            session.delete(tag)
+            session.commit()
+            return Response("Tag supprimé")
+        else:
+            return 'error'
