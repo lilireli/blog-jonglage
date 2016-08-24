@@ -25,11 +25,38 @@ locale.setlocale(locale.LC_TIME, "fr_FR.utf8")
 NB_ARTICLES_BY_PAGE = 20
 DATE_STRING_FORMAT = "%d %b %Y"
 
+def tranform_article(article):
+    tags = [{"name": tag.name} for tag in article.tags]
+    article_dict = {"name": article.name,
+                    "creation_date": article.creation_date.strftime(DATE_STRING_FORMAT),
+                    "author": article.author,
+                    "description": article.description,
+                    "id": article.id,
+                    "category": article.category_id,
+                    "tags": tags}
+    return article_dict
+
 
 @app.route('/')
 @app.route('/page/<int:page>')
 def index(page=1):
-    data = {"test": "test"}
+    nb_page = ((session.query(Article).count() -1 )
+               / NB_ARTICLES_BY_PAGE) + 1
+    pages = [{"number": i, "link": "/page/" + str(i)}
+             for i in range(1, nb_page + 1)]
+    query_articles = (session.query(Article)
+                             .order_by(Article.creation_date.desc()))
+    articles = [tranform_article(art) for art
+                in query_articles[(page - 1) * NB_ARTICLES_BY_PAGE:page * NB_ARTICLES_BY_PAGE]]
+    data = {
+        "page_type": "home",
+        "pagination": {
+          "current_page": page,
+          "nb_page": nb_page,
+          "pages": pages
+        },
+        "articles": articles
+    }
     return render_template('general-template.html', data=json.dumps(data),
                            type_js='home')
 

@@ -5,7 +5,7 @@ import json
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Date, Table, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Table, Boolean
 
 # Information de connexion
 engine = create_engine('mysql://pierrick:@localhost/jonglage')
@@ -33,8 +33,8 @@ class Article(Base):
     author = Column(String(30))
     content = Column(String(10000))
     description = Column(String(500))
-    creation_date = Column(Date)
-    last_modification_date = Column(Date)
+    creation_date = Column(DateTime)
+    last_modification_date = Column(DateTime)
     is_beginner = Column(Boolean)
     category_id = Column(String(50), ForeignKey('categories.id'))
 
