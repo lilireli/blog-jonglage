@@ -24,6 +24,11 @@ class Category(Base):
     description = Column(String(2000))
 
     articles = relationship("Article", back_populates="category")
+        
+    def to_json(self):
+        category_json = {"name": self.name, "id": self.id,
+                         "description": self.description}
+        return str(category_json)
 
 class Article(Base):
     __tablename__ = 'articles'
@@ -42,6 +47,15 @@ class Article(Base):
     tags = relationship('Tag', secondary=article_to_tag,
                         back_populates="articles")
 
+    def to_json(self):
+        tags = ','.join([t.name for t in self.tags])
+        article_json = {"id": self.id, "name": self.name,
+                        "author": self.author, "content": self.content,
+                        "is_beginner": self.is_beginner,
+                        "description": self.description,
+                        "category_id": self.category_id, "tags": tags}
+        return str(article_json)
+
 class Tag(Base):
     __tablename__ = 'tags'
 
@@ -51,7 +65,11 @@ class Tag(Base):
 
     articles = relationship('Article', secondary=article_to_tag,
                             back_populates='tags')
-    
+
+    def to_json(self):
+        tag_json = {"name": self.name, "id": self.id,
+                    "description": self.description}
+        return str(tag_json)
 
 if __name__ == '__main__':
     Base.metadata.create_all(engine)

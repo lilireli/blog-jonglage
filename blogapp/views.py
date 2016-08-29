@@ -12,18 +12,31 @@ from sqlalchemy.orm import sessionmaker
 
 from models import Category, Article, Tag
 
+app = Flask('__app__', template_folder='blogapp/templates',
+            static_folder='blogapp/static', instance_relative_config=True)
+
+# Load the default configuration
+app.config.from_object('config.default')
+
+# Load the configuration from the instance folder
+app.config.from_pyfile('config.py')
+
+# Load the file specified by the APP_CONFIG_FILE environment variable
+# Variables defined here will override those in the default configuration
+app.config.from_envvar('APP_CONFIG_FILE')
+
+locale.setlocale(locale.LC_TIME, app.config['LOCALE'])
+
 # Information de connexion
-engine = create_engine('mysql://pierrick:@localhost/jonglage')
+if 'DB_PASSWORD' in app.config:
+    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI']
+                              .replace(':@', ':' + app.config['DB_PASSWORD']
+                                       + '@'))
+else:
+    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 Session = sessionmaker(bind=engine)
 session = Session()
 
-app = Flask('__app__', template_folder='blogapp/templates',
-            static_folder='blogapp/static')
-
-locale.setlocale(locale.LC_TIME, "fr_FR.utf8")
-
-NB_ARTICLES_BY_PAGE = 20
-DATE_STRING_FORMAT = "%d %b %Y"
 
 def tranform_article(article):
     tags = [{"name": tag.name} for tag in article.tags]
@@ -37,17 +50,21 @@ def tranform_article(article):
     return article_dict
 
 
+def convert_to_bool(string):
+    return True if bool == 'True' else False
+
+
 @app.route('/')
 @app.route('/page/<int:page>')
 def index(page=1):
     nb_page = ((session.query(Article).count() -1 )
-               / NB_ARTICLES_BY_PAGE) + 1
+               / app.config['NB_ARTICLES_BY_PAGE']) + 1
     pages = [{"number": i, "link": "/page/" + str(i)}
              for i in range(1, nb_page + 1)]
     query_articles = (session.query(Article)
                              .order_by(Article.creation_date.desc()))
     articles = [tranform_article(art) for art
-                in query_articles[(page - 1) * NB_ARTICLES_BY_PAGE:page * NB_ARTICLES_BY_PAGE]]
+                in query_articles[(page - 1) * app.config['NB_ARTICLES_BY_PAGE']:page * app.config['NB_ARTICLES_BY_PAGE']]]
     data = {
         "page_type": "home",
         "pagination": {
@@ -100,6 +117,59 @@ def get_category(category):
         return 'error'
 
 
+@app.route('/categories/<category_id>/json')
+def get_json_category(category_id):
+    query = session.query(Category).filter_by(id=category_id)
+    categories = query.all()
+    if len(categories) == 1:
+        return categories[0].to_json()
+    else:
+        return 'error'
+
+
+@app.route('/categories/<category_id>/modify', methods=['POST'])
+def modify_category(category_id):
+    if request.method == 'POST':
+        query = session.query(Category).filter_by(id=category_id)
+        categories = query.all()
+        if len(categories) == 1:
+            category = categories[0]
+            category.name = (request.form['name']
+                             if 'name' in request.form else category.name)
+            category.description = (request.form['description']
+                                    if 'description' in request.form
+                                    else category.description)
+            session.commit()
+            return 'Tag modifié'
+        else:
+            return 'error'
+
+
+@app.route('/categories/create', methods=['POST'])
+def create_category():
+    if request.method == 'POST':
+        category = Category(name=request.form['name'],
+                            description=request.form['description'],
+                            id=request.form['name'].lower())
+        session.add(category)
+        session.commit()
+        return Response("Category saved")
+
+
+@app.route('/categories/<category_id>/delete', methods=['DELETE'])
+def delete_category(category_id):
+    if request.method == 'DELETE':
+        query = session.query(Category).filter_by(id=category_id)
+        categories = query.all()
+        if len(categories) == 1:
+            category = categories[0]
+            session.delete(category)
+            session.commit()
+            return Response("Category deleted")
+        else:
+            return 'error'
+
+
 @app.route('/articles/<article>')
 def get_article(article):
     # Récupérer les informations concernant l'article
@@ -117,9 +187,10 @@ def get_article(article):
             "category": article.category.name,
             "page_type": article.category.name,
             "content": article.content,
-            "creation_date": article.creation_date.strftime(DATE_STRING_FORMAT),
-            "last_modification_date": article.last_modification_date.strftime(
-                DATE_STRING_FORMAT),
+            "creation_date": article.creation_date.strftime(app.config['DATE_STRING_FORMAT']),
+            "last_modification_date": (article.last_modification_date
+                                       .strftime(
+                app.config['DATE_STRING_FORMAT'])),
             "tags": tags,
         }
         return render_template('general-template.html', data=json.dumps(data),
@@ -148,8 +219,7 @@ def create_article():
             else:
                 tags.append(Tag(name=tag_name, id=tag_name.lower()))
 
-        is_beginner = (True if request.form['is_beginner'] == 'True'
-                       else False)
+        is_beginner = convert_to_bool(request.form['is_beginner'])
         article = Article(
             name=request.form['name'], author=request.form['author'],
             content=request.form['content'],
@@ -161,15 +231,83 @@ def create_article():
         return Response("Article enregistré")
 
 
+@app.route('/articles/<article_id>/json')
+def get_json_article(article_id):
+    query = session.query(Article).filter_by(id=article_id)
+    articles = query.all()
+    if len(articles) == 1:
+        return articles[0].to_json()
+    else:
+        return 'error'
+
+
+@app.route('/articles/<article_id>/modify', methods=['POST'])
+def modify_article(article_id):
+    if request.method == 'POST':
+        now = datetime.datetime.now()
+        query = session.query(Article).filter_by(id=article_id)
+        articles = query.all()
+        if len(articles) == 1:
+            article = articles[0]
+            
+            article.name = (request.form['name']
+                            if 'name' in request.form else article.name)
+            article.description = (request.form['description']
+                                   if 'description' in request.form
+                                   else article.description)
+            article.author = (request.form['author']
+                              if 'author' in request.form
+                              else article.author)
+            article.content = (request.form['content']
+                               if 'content' in request.form
+                               else article.content)
+            article.is_beginner = (convert_to_bool(
+                                       request.form['is_beginner'])
+                                   if 'is_beginner' in request.form
+                                   else article.is_beginner)
+            article.category_id = (request.form['category_id']
+                                   if 'category_id' in request.form
+                                   else article.category_id)
+            if 'tags' in request.form:
+                tags = []
+                tags_name = request.form['tags'].split(',')
+                for tag_name in tags_name:
+                    query = session.query(Tag).filter_by(id=tag_name)
+                    current_tags = query.all()
+                    if len(current_tags) == 1:
+                        tags.append(current_tags[0])
+                    else:
+                        tags.append(Tag(name=tag_name,
+                                        id=tag_name.lower()))
+                article.tags = tags
+ 
+            article.last_modification_date = now
+            session.commit()
+            return 'Article modified'
+        else:
+            return 'error'
+
+
+@app.route('/articles/<article_id>/delete', methods=['DELETE'])
+def delete_article(article_id):
+    if request.method == 'DELETE':
+        query = session.query(Article).filter_by(id=article_id)
+        articles = query.all()
+        if len(articles) == 1:
+            article = articles[0]
+            session.delete(article)
+            session.commit()
+            return Response("Article deleted")
+        else:
+            return 'error'
+
+
 @app.route('/tags/<tag_id>/json')
 def get_json_tag(tag_id):
     query = session.query(Tag).filter_by(id=tag_id)
     tags = query.all()
     if len(tags) == 1:
-        tag = tags[0]
-        tag_dict = {"name": tag.name, "id": tag.id,
-                    "description": tag.description}
-        return str(tag_dict)
+        return tags[0].to_json()
     else:
         return 'error'
 
@@ -190,6 +328,7 @@ def modify_tag(tag_id):
             return 'Tag modifié'
         else:
             return 'error'
+
 
 @app.route('/tags/create', methods=['POST'])
 def create_tag():

@@ -37,6 +37,79 @@ paths:
       tags:
         - Categories
 
+  /categories/{id}/json:
+    get:
+      summary: Retrieve one category by id.
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the category.
+          required: true
+          type: string
+      tags:
+        - Categories
+
+  /categories/create:
+    post:
+      summary: Create one new category
+      parameters:
+        - name: name
+          in: formData
+          description: Name of the category
+          required: true
+          type: string
+        - name: id
+          in: formData
+          description: Id of the category
+          required: true
+          type: string
+        - name: description
+          in: formData
+          required: false
+          type: string
+      tags:
+        - Categories
+
+  /categories/{id}/modify:
+    post:
+      summary: Modify one category by id
+      produces:
+        - text/html
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the category.
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: The name of the category.
+          required: False
+          type: string
+        - name: description
+          in: formData
+          description: Description of the category.
+          required: False
+          type: string
+      tags:
+        - Categories
+
+  /categories/{id}/delete:
+    delete:
+      summary: Delete one category.
+      produces:
+        - test/html
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the category.
+          required: true
+          type: string
+      tags:
+        - Categories
+        
   /articles/{id}:
     get:
       summary: Send all the content of an article
@@ -94,21 +167,84 @@ paths:
       tags:
         - Articles
 
-  /articles/modify:
+  /articles/{id}/modify:
     post:
-      summary: Modify one existing article (non working)
+      summary: Modify one existing article.
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the article.
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: Name of the article.
+          required: false
+          type: string
+        - name: author
+          in: formData
+          description: Author of the article.
+          required: false
+          type: string
+        - name: description
+          in: formData
+          description: Description of the article.
+          required: false
+          type: string
+        - name: content
+          in: formData
+          description: Content of the article.
+          required: false
+          type: string
+        - name: category
+          in: formData
+          description: Category of the article.
+          required: false
+          type: string
+        - name: tags
+          in: formData
+          description: List of tags for the article. Separe all tags by comas like "tag1,tag2"
+          required: false
+          type: string
+        - name: is_beginner
+          in: formData
+          description: Defines if the article is destined to beginners or not
+          required: false
+          type: boolean
       tags:
         - Articles
 
-  /articles/delete:
-    post:
-      summary: Delete one existinf article (non working)
+  /articles/{id}/json:
+    get:
+      summary: Retrieve one article by id.
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the tag.
+          required: true
+          type: string
+      tags:
+        - Articles
+
+  /articles/{id}/delete:
+    delete:
+      summary: Delete one article.
+      produces:
+        - test/html
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the article.
+          required: true
+          type: string
       tags:
         - Articles
 
   /tags/create:
     post:
-      summary: Create one new tag (non working)
+      summary: Create one new tag
       parameters:
         - name: name
           in: formData
