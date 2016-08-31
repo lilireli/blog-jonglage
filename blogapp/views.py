@@ -9,8 +9,9 @@ from collections import defaultdict
 from flask import Flask, Response, render_template, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-from models import Category, Article, Tag
+from models import Category, Article, Tag, Base
 
 app = Flask('__app__', template_folder='blogapp/templates',
             static_folder='blogapp/static', instance_relative_config=True)
@@ -18,16 +19,17 @@ app = Flask('__app__', template_folder='blogapp/templates',
 # Load the default configuration
 app.config.from_object('config.default')
 
-# Load the configuration from the instance folder
+# Load the configuration from the instance folder (not versioned)
 app.config.from_pyfile('config.py')
 
 # Load the file specified by the APP_CONFIG_FILE environment variable
 # Variables defined here will override those in the default configuration
 app.config.from_envvar('APP_CONFIG_FILE')
 
+# Set the locale to send datetime with locale format
 locale.setlocale(locale.LC_TIME, app.config['LOCALE'])
 
-# Information de connexion
+# Connexion information
 if 'DB_PASSWORD' in app.config:
     engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI']
                               .replace(':@', ':' + app.config['DB_PASSWORD']
@@ -38,33 +40,36 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-def tranform_article(article):
-    tags = [{"name": tag.name} for tag in article.tags]
-    article_dict = {"name": article.name,
-                    "creation_date": article.creation_date.strftime(DATE_STRING_FORMAT),
-                    "author": article.author,
-                    "description": article.description,
-                    "id": article.id,
-                    "category": article.category_id,
-                    "tags": tags}
-    return article_dict
-
-
 def convert_to_bool(string):
+    """ Convert a string into boolean
+    """
     return True if bool == 'True' else False
+
+# Index route
 
 
 @app.route('/')
 @app.route('/page/<int:page>')
 def index(page=1):
-    nb_page = ((session.query(Article).count() -1 )
+    """ Return the last articles for the selectionned page
+    """
+    # The total number of pages
+    nb_page = ((session.query(Article).count() - 1)
                / app.config['NB_ARTICLES_BY_PAGE']) + 1
+
+    # Links onto the pages
     pages = [{"number": i, "link": "/page/" + str(i)}
              for i in range(1, nb_page + 1)]
+
+    # Retrieving and formatting of the articles
     query_articles = (session.query(Article)
                              .order_by(Article.creation_date.desc()))
-    articles = [tranform_article(art) for art
-                in query_articles[(page - 1) * app.config['NB_ARTICLES_BY_PAGE']:page * app.config['NB_ARTICLES_BY_PAGE']]]
+    articles = [art.to_data(app.config['DATE_STRING_FORMAT']) for art
+                in query_articles[(page - 1) *
+                                  app.config['NB_ARTICLES_BY_PAGE']:page *
+                                  app.config['NB_ARTICLES_BY_PAGE']]]
+
+    # The data with wich fill in the page
     data = {
         "page_type": "home",
         "pagination": {
@@ -77,33 +82,41 @@ def index(page=1):
     return render_template('general-template.html', data=json.dumps(data),
                            type_js='home')
 
+# Routes for categories (retrieve in JSON and HTML, modify, delete, create)
 
-# Renvoie la catégorie avec tous ses articles
+
 @app.route('/categories/<category>')
 def get_category(category):
-    # Récupérer les informations concernant la catégorie
+    """ Send the HTML page for a category with all its articles
+    """
+    # Retrieving the information about the categories
     query_cat = session.query(Category).filter_by(id=category)
     categories = query_cat.all()
 
-    # Récupération des beginners links
+    # Retrieving the beginners links (articles which are for beginners)
     query_beginner = (session.query(Article.name, Article.id)
-                             .filter_by(category_id=category, is_beginner=True))
+                             .filter_by(category_id=category,
+                                        is_beginner=True))
     beginner_links = [{'name': bl[0], 'link': '/articles/' + bl[1]}
                       for bl in query_beginner.all()]
 
-    # Vérifier que la catégorie existe
+    # Verification that the category exists
     if len(categories) == 1:
-        # Renvoyer les informations ou une erreur
         category = categories[0]
         articles = category.articles
         articles_by_tags = defaultdict(list)
+
+        # Formatting of articles and tags
         for article in articles:
             for tag in article.tags:
                 articles_by_tags[(tag.id, tag.name)].append(
                     {"name": article.name, "description": article.description,
-                     "id": article.id})
-        tags = [{"name": k[0], "description": k[1], "articles": v}
+                     "id": article.id, "difficulty": int(article.difficulty)})
+        tags = [{"name": k[0], "description": k[1],
+                 "articles": sorted(v, key=lambda art: art['difficulty'])}
                 for k, v in articles_by_tags.items()]
+
+        # The data with wich fill in the page
         data = {
             "page_type": category.id,
             "name": category.name,
@@ -113,22 +126,27 @@ def get_category(category):
           }
         return render_template('general-template.html', data=data,
                                type_js='category')
+    # If there is no categories, send an error
     else:
-        return 'error'
+        return Response('error')
 
 
 @app.route('/categories/<category_id>/json')
 def get_json_category(category_id):
+    """ Retrieve a category on JSON. Useful to modify it after
+    """
     query = session.query(Category).filter_by(id=category_id)
     categories = query.all()
     if len(categories) == 1:
         return categories[0].to_json()
     else:
-        return 'error'
+        return Response('error')
 
 
 @app.route('/categories/<category_id>/modify', methods=['POST'])
 def modify_category(category_id):
+    """ Modify a category. All the fields are optionnal
+    """
     if request.method == 'POST':
         query = session.query(Category).filter_by(id=category_id)
         categories = query.all()
@@ -140,45 +158,58 @@ def modify_category(category_id):
                                     if 'description' in request.form
                                     else category.description)
             session.commit()
-            return 'Tag modifié'
+            return Response('Category modified')
         else:
-            return 'error'
+            return Response('error')
 
 
 @app.route('/categories/create', methods=['POST'])
 def create_category():
+    """ Creation of a category
+    """
     if request.method == 'POST':
         category = Category(name=request.form['name'],
                             description=request.form['description'],
                             id=request.form['name'].lower())
         session.add(category)
         session.commit()
-        return Response("Category saved")
+        return Response('Category saved')
 
 
 @app.route('/categories/<category_id>/delete', methods=['DELETE'])
 def delete_category(category_id):
+    """ Deletion of a category
+    """
     if request.method == 'DELETE':
         query = session.query(Category).filter_by(id=category_id)
         categories = query.all()
+
+        # Verification that the category exists
         if len(categories) == 1:
             category = categories[0]
             session.delete(category)
             session.commit()
-            return Response("Category deleted")
+            return Response('Category deleted')
+
+        # If there is no categories, return an error
         else:
-            return 'error'
+            return Response('error')
+
+# Routes for articles (retrieve in HTML and JSON, modify, delete, create)
 
 
 @app.route('/articles/<article>')
 def get_article(article):
-    # Récupérer les informations concernant l'article
+    # Retrieve the informations on the article
     query = session.query(Article).filter_by(id=article)
     articles = query.all()
-    # Renvoyer les informations ou une erreur
+
+    # Verify the number of articles
     if len(articles) == 1:
         article = articles[0]
         tags = [{"name": t.name} for t in article.tags]
+
+        # The data with wich fill in the page
         data = {
             "name": article.name,
             "author": article.author,
@@ -187,35 +218,48 @@ def get_article(article):
             "category": article.category.name,
             "page_type": article.category.name,
             "content": article.content,
-            "creation_date": article.creation_date.strftime(app.config['DATE_STRING_FORMAT']),
+            "difficulty": article.difficulty,
+            "creation_date": article.creation_date.strftime(
+                app.config['DATE_STRING_FORMAT']),
             "last_modification_date": (article.last_modification_date
                                        .strftime(
-                app.config['DATE_STRING_FORMAT'])),
+                                            app.config['DATE_STRING_FORMAT'])),
             "tags": tags,
         }
         return render_template('general-template.html', data=json.dumps(data),
                                type_js='article')
+
+    # If there is no articles, return an error
     else:
-        return 'error'
+        return Response('error')
 
 
 @app.route('/articles/create', methods=["POST"])
 def create_article():
+    """ Create an article. The creation_date and the last_modification_date
+    are filled with the moment at which the request is received
+    """
     if request.method == "POST":
         now = datetime.datetime.now()
+
+        # The id is the name of the article lowered and without accent
         id_art = request.form['name'].lower()
-        nfkd_form = unicodedata.normalize('NFKD', id_art)
-        id_art = nfkd_form.encode('ASCII', 'ignore')
         id_art = id_art.replace(' ', '-')
 
-        # Récupération des tags. Si le tag n'existe pas, on le créé
+        # allows to remove accents
+        nfkd_form = unicodedata.normalize('NFKD', id_art)
+        id_art = nfkd_form.encode('ASCII', 'ignore')
+
+        # Retrieve of the tags. If it doesn't exist, it is created
         tags = []
         tags_name = request.form['tags'].split(',')
         for tag_name in tags_name:
             query = session.query(Tag).filter_by(id=tag_name)
             current_tags = query.all()
+            # We retrieve the tag if it exists
             if len(current_tags) == 1:
                 tags.append(current_tags[0])
+            # Else we create it
             else:
                 tags.append(Tag(name=tag_name, id=tag_name.lower()))
 
@@ -225,31 +269,40 @@ def create_article():
             content=request.form['content'],
             category_id=request.form['category'], creation_date=now,
             last_modification_date=now, is_beginner=is_beginner,
-            description=request.form['description'], id=id_art, tags=tags)
+            description=request.form['description'], id=id_art, tags=tags,
+            difficulty=request.form['difficulty'])
         session.add(article)
         session.commit()
-        return Response("Article enregistré")
+        return Response('Article saved')
 
 
 @app.route('/articles/<article_id>/json')
 def get_json_article(article_id):
+    """ Retrieve an article on JSON. Useful to modify it after
+    """
     query = session.query(Article).filter_by(id=article_id)
     articles = query.all()
     if len(articles) == 1:
         return articles[0].to_json()
     else:
-        return 'error'
+        return Response('error')
 
 
 @app.route('/articles/<article_id>/modify', methods=['POST'])
 def modify_article(article_id):
+    """ Modification of an article. The last_modification_date is also updated
+    """
     if request.method == 'POST':
+        # Useful for the last_modification_date
         now = datetime.datetime.now()
+
+        # Retrieve the article
         query = session.query(Article).filter_by(id=article_id)
         articles = query.all()
+
+        # Verify the number of articles
         if len(articles) == 1:
             article = articles[0]
-            
             article.name = (request.form['name']
                             if 'name' in request.form else article.name)
             article.description = (request.form['description']
@@ -268,6 +321,12 @@ def modify_article(article_id):
             article.category_id = (request.form['category_id']
                                    if 'category_id' in request.form
                                    else article.category_id)
+
+            article.difficulty = (int(request.form['difficulty'])
+                                  if 'difficulty' in request.form
+                                  else article.difficulty)
+
+            # We have also to create the tags if they don't exist
             if 'tags' in request.form:
                 tags = []
                 tags_name = request.form['tags'].split(',')
@@ -280,43 +339,59 @@ def modify_article(article_id):
                         tags.append(Tag(name=tag_name,
                                         id=tag_name.lower()))
                 article.tags = tags
- 
+
             article.last_modification_date = now
             session.commit()
-            return 'Article modified'
+            return Response('Article modified')
+
+        # If there is no articles, return an error
         else:
-            return 'error'
+            return Response('error')
 
 
 @app.route('/articles/<article_id>/delete', methods=['DELETE'])
 def delete_article(article_id):
+    """ Delete an article
+    """
     if request.method == 'DELETE':
         query = session.query(Article).filter_by(id=article_id)
         articles = query.all()
+
+        # Verify the number of articles
         if len(articles) == 1:
             article = articles[0]
             session.delete(article)
             session.commit()
             return Response("Article deleted")
+
+        # If there is no articles, return an error
         else:
-            return 'error'
+            return Response('error')
+
+# Routes for tags (retrieve in JSON and HTML, modify, delete, create)
 
 
 @app.route('/tags/<tag_id>/json')
 def get_json_tag(tag_id):
+    """ Retrieve a tag on JSON. Useful to modify it after
+    """
     query = session.query(Tag).filter_by(id=tag_id)
     tags = query.all()
     if len(tags) == 1:
         return tags[0].to_json()
     else:
-        return 'error'
+        return Response('error')
 
 
 @app.route('/tags/<tag_id>/modify', methods=['POST'])
 def modify_tag(tag_id):
+    """ Modify a tag. All the fields are optionnal
+    """
     if request.method == 'POST':
         query = session.query(Tag).filter_by(id=tag_id)
         tags = query.all()
+
+        # Verify that the tag exist
         if len(tags) == 1:
             tag = tags[0]
             tag.name = (request.form['name']
@@ -325,31 +400,55 @@ def modify_tag(tag_id):
                                if 'description' in request.form
                                else tag.description)
             session.commit()
-            return 'Tag modifié'
+            return 'Tag modified'
+
+        # If there is no tags, return an error
         else:
-            return 'error'
+            return Response('error')
 
 
 @app.route('/tags/create', methods=['POST'])
 def create_tag():
+    """ Create a tag
+    """
     if request.method == 'POST':
         tag = Tag(name=request.form['name'],
                   description=request.form['description'],
                   id=request.form['name'].lower())
         session.add(tag)
         session.commit()
-        return Response("Tag enregistré")
+        return Response('Tag saved')
 
 
 @app.route('/tags/<tag_id>/delete', methods=['DELETE'])
 def delete_tag(tag_id):
+    """ Delete a tag
+    """
     if request.method == 'DELETE':
         query = session.query(Tag).filter_by(id=tag_id)
         tags = query.all()
+
+        # Verify tag the tag exist
         if len(tags) == 1:
             tag = tags[0]
             session.delete(tag)
             session.commit()
-            return Response("Tag supprimé")
+            return Response('Tag deleted')
+
+        # If there is no tags, return an error
         else:
-            return 'error'
+            return Response('error')
+
+@app.route('/initialize')
+def initialize():
+    """ Initialize the database (creation of table, fill in with categories...)
+    """
+    Base.metadata.create_all(engine)
+    with open('blogapp/categories.json') as json_data:
+        for category in json.load(json_data):
+            ed_category = Category(id=category['name'], name=category['id'],
+                                   description=category['description'])
+            session.add(ed_category)
+
+    session.commit()
+    return Response('Database initialized')

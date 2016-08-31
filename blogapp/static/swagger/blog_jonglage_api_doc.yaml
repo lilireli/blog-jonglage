@@ -23,6 +23,14 @@ paths:
       tags:
         - Homepage
 
+  /initialize:
+    get:
+      summary: Initialize the database
+      produces:
+        - text/HTML
+      tags:
+        - Initialization
+
   /categories/{id}:
     get:
       summary: HTML for each category
@@ -164,6 +172,11 @@ paths:
           required: true
           type: boolean
           default: False
+        - name: difficulty
+          in: formData
+          description: The difficulty of the article
+          required: true
+          type: integer
       tags:
         - Articles
 
@@ -211,6 +224,11 @@ paths:
           description: Defines if the article is destined to beginners or not
           required: false
           type: boolean
+        - name: difficulty
+          in: formData
+          description: The difficulty of the article
+          required: false
+          type: integer
       tags:
         - Articles
 

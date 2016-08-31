@@ -12,13 +12,13 @@ This project is the creation of a blog onto the jugglage.
 And after this line: `venv/bin/python run.py` You have next to set file excutable with a `chmod +x start.sh`
 The config in the path is one of the file contains into the config folder (dev_pierrick.py by example). If you want set your own config, copy one of the config file and replace the parameters by your own.
 * Install MariaDB
-* Create a database jonglage into MariaDB, and a user with a password
-* Into the virtual environment, launch a `python blogapp/models.py`. It shoud create your tables, and pop the categories with these in blogapp/categories.json
+* Create a database jonglage into MariaDB, and a user with the password define in your secret configuration
+* Run the server, and make a requst on /initialize to initialize the database. It can be launched with swagger (see below)
 
-# Lancement du serveur
+# Server launch
 
 Just launch `./start.sh`
 
-# Consultation de l'API
+# API consultation
 
 Consult the page /static/swagger/index.html
