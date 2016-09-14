@@ -5,8 +5,11 @@ import datetime
 import unicodedata
 import locale
 from collections import defaultdict
+import os
 
-from flask import Flask, Response, render_template, request
+from flask import (Flask, Response, render_template, request,
+                   send_from_directory)
+from flask_httpauth import HTTPBasicAuth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -38,6 +41,18 @@ else:
     engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 Session = sessionmaker(bind=engine)
 session = Session()
+
+# Authentication
+auth = HTTPBasicAuth()
+
+
+@auth.verify_password
+def verify_password(username, password):
+    """ Verify that the username given is good. We use here a token, so the 
+    password is useless"""
+    if not username or username != app.config['TOKEN']:
+        return False
+    return True
 
 
 def convert_to_bool(string):
@@ -132,6 +147,7 @@ def get_category(category):
 
 
 @app.route('/categories/<category_id>/json')
+@auth.login_required
 def get_json_category(category_id):
     """ Retrieve a category on JSON. Useful to modify it after
     """
@@ -144,6 +160,7 @@ def get_json_category(category_id):
 
 
 @app.route('/categories/<category_id>/modify', methods=['POST'])
+@auth.login_required
 def modify_category(category_id):
     """ Modify a category. All the fields are optionnal
     """
@@ -164,6 +181,7 @@ def modify_category(category_id):
 
 
 @app.route('/categories/create', methods=['POST'])
+@auth.login_required
 def create_category():
     """ Creation of a category
     """
@@ -177,6 +195,7 @@ def create_category():
 
 
 @app.route('/categories/<category_id>/delete', methods=['DELETE'])
+@auth.login_required
 def delete_category(category_id):
     """ Deletion of a category
     """
@@ -235,6 +254,7 @@ def get_article(article):
 
 
 @app.route('/articles/create', methods=["POST"])
+@auth.login_required
 def create_article():
     """ Create an article. The creation_date and the last_modification_date
     are filled with the moment at which the request is received
@@ -277,6 +297,7 @@ def create_article():
 
 
 @app.route('/articles/<article_id>/json')
+@auth.login_required
 def get_json_article(article_id):
     """ Retrieve an article on JSON. Useful to modify it after
     """
@@ -289,6 +310,7 @@ def get_json_article(article_id):
 
 
 @app.route('/articles/<article_id>/modify', methods=['POST'])
+@auth.login_required
 def modify_article(article_id):
     """ Modification of an article. The last_modification_date is also updated
     """
@@ -350,6 +372,7 @@ def modify_article(article_id):
 
 
 @app.route('/articles/<article_id>/delete', methods=['DELETE'])
+@auth.login_required
 def delete_article(article_id):
     """ Delete an article
     """
@@ -372,6 +395,7 @@ def delete_article(article_id):
 
 
 @app.route('/tags/<tag_id>/json')
+@auth.login_required
 def get_json_tag(tag_id):
     """ Retrieve a tag on JSON. Useful to modify it after
     """
@@ -384,6 +408,7 @@ def get_json_tag(tag_id):
 
 
 @app.route('/tags/<tag_id>/modify', methods=['POST'])
+@auth.login_required
 def modify_tag(tag_id):
     """ Modify a tag. All the fields are optionnal
     """
@@ -408,6 +433,7 @@ def modify_tag(tag_id):
 
 
 @app.route('/tags/create', methods=['POST'])
+@auth.login_required
 def create_tag():
     """ Create a tag
     """
@@ -421,6 +447,7 @@ def create_tag():
 
 
 @app.route('/tags/<tag_id>/delete', methods=['DELETE'])
+@auth.login_required
 def delete_tag(tag_id):
     """ Delete a tag
     """
@@ -439,7 +466,9 @@ def delete_tag(tag_id):
         else:
             return Response('error')
 
+
 @app.route('/initialize')
+@auth.login_required
 def initialize():
     """ Initialize the database (creation of table, fill in with categories...)
     """
@@ -452,3 +481,13 @@ def initialize():
 
     session.commit()
     return Response('Database initialized')
+
+# Swagger
+
+
+@app.route('/swagger/<path:filename>')
+@auth.login_required
+def swagger(filename):
+    print dir(app)
+    return send_from_directory(
+        'blogapp/swagger', filename)
