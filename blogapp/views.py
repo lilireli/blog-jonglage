@@ -19,8 +19,9 @@ from models import Category, Article, Tag, Base
 app = Flask('__app__', template_folder='blogapp/templates',
             static_folder='blogapp/static', instance_relative_config=True)
 
+
 # Load the default configuration
-app.config.from_object('config.default')
+app.config.from_pyfile('../config/default.py')
 
 # Load the configuration from the instance folder (not versioned)
 app.config.from_pyfile('config.py')
