@@ -12,7 +12,7 @@ var Menu = React.createClass({
                 <a href="/categories/#" onClick={this.close} className="w3-hide-large w3-right w3-jumbo w3-padding" title="close menu">
                   <i className="fa fa-remove"></i>
                 </a>
-                <img src="img_avatar_g2.jpg" className="w3-round"></img>
+                <img src="/static/img/img_menu.JPG" className="w3-round"></img>
                 <h4 className="w3-padding-0"><b>JONGLAGE</b></h4>
                 <p className="w3-text-grey">Un blog pour explorer des millions de possibilités</p>
               </div>
