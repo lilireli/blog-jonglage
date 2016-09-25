@@ -89,7 +89,7 @@ var Category = React.createClass({
   render: function() {
     return (
       <div>
-        <h1><b>{this.props.data.category}</b></h1>
+        <h1><b>{this.props.data.name}</b></h1>
         <div className="w3-section w3-bottombar"></div>
 
         <div className="w3-container w3-margin-bottom">
