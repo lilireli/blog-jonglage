@@ -475,7 +475,7 @@ def initialize():
     Base.metadata.create_all(engine)
     with open('blogapp/categories.json') as json_data:
         for category in json.load(json_data):
-            ed_category = Category(id=category['name'], name=category['id'],
+            ed_category = Category(id=category['id'], name=category['name'],
                                    description=category['description'])
             session.add(ed_category)
 
