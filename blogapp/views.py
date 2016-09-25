@@ -491,3 +491,6 @@ def swagger(filename):
     print dir(app)
     return send_from_directory(
         'blogapp/swagger', filename)
+
+if __name__ == '__main__':
+    app.run()
