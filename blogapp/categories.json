@@ -1,8 +1,52 @@
 [
     {
-       "page_type": "balles",
+        "id": "journal",
+        "name": "Journal du jongleur",
+        "description": "Catégorie un peu particulière où seront plutôt écrit des articles généraux sur le jonglage (convention, etc)"
+    },
+    {
+        "id": "acrobatie",
+        "name": "Acrobatie",
+        "description": "Mouvements faits uniquement avec le corp (ex : ATR, saut périlleux...). Se pratique très bien à plusieurs pour faire des figures."
+    },
+    {
        "id": "balles",
        "name": "Balles",
-       "description": "Praesent tincidunt sed tellus ut rutrum. Sed vitae justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla. Lorem ipsum dolor sit amet et calerare out if ned.Praesent tincidunt sed tellus ut rutrum. Sed vitae justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla. Lorem ipsum dolor sit amet et calerare out if ned.Praesent tincidunt sed tellus ut rutrum. Sed vitae justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla. Lorem ipsum dolor sit amet et calerare out if ned.Praesent tincidunt sed tellus ut rutrum. Sed vitae justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla. Lorem ipsum dolor sit amet et calerare out if ned.Praesent tincidunt sed tellus ut rutrum. Sed vitae justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla. Lorem ipsum dolor sit amet et calerare out if ned."  
+       "description": "Un des objets les plus basiques au jonglage"  
+    },
+    {
+        "id": "balle-contact",
+        "name": "Balle contact",
+        "description": "La balle contact est une balle plus grosse que la normale et qui aggripe, permettant, comme on nom l'indique, de faire du contact avec"
+    },
+    {
+        "id": "baton-du-diable",
+        "name": "Baton du diable",
+        "description": "Baton agrippant utilié avec l'aide de deux baguettes"
+    },
+    {
+        "id": "bolas",
+        "name": "Bolas",
+        "description": "Une bolas est composé d'un objet lourd (comme une balle) accroché au bout d'un objet long et flexible (ficelle, longue chaussette)"
+    },
+    {
+        "id": "chapeau",
+        "name": "Chapeau",
+        "description": "Chapeau utilisé pour faire du jonglage"
+    },
+    {
+        "id": "diabolo",
+        "name": "Diabolo",
+        "description": "Objet composé de deux cônes rassemblés, utilisé sur une ficelle tendue entre deux baguettes"
+    },
+    {
+        "id": "massue",
+        "name": "Massue",
+        "description": "Objet souvent confondue avec des quilles. Permet de jongler, et très utilisé pour faire du passing"
+    },
+    {
+        "id": "staff",
+        "name": "Staff",
+        "description": "Petit ou long baton (entre 80 et 160 cm) utilisé pour jongler. On distingue plusieurs types de jonglage au staff : splinning, contact, multi-staff, dragon..."
     }
 ]
