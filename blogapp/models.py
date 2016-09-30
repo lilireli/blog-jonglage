@@ -2,33 +2,26 @@
 
 import json
 
-from sqlalchemy import create_engine, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, Table, Boolean
-
-# Connexion informations
-engine = create_engine('mysql://pierrick:@localhost/jonglage')
-Session = sessionmaker(bind=engine)
-Base = declarative_base()
+from database import db
 
 # Table to link articles and tags
-article_to_tag = Table('article_to_tag', Base.metadata,
-                       Column('article_id', String(50),
-                              ForeignKey('articles.id')),
-                       Column('tag_id', String(50), ForeignKey('tags.id')))
+article_to_tag = db.Table('article_to_tag',
+                          db.Column('article_id', db.String(50),
+                                    db.ForeignKey('articles.id')),
+                          db.Column('tag_id', db.String(50),
+                                    db.ForeignKey('tags.id')))
 
 
-class Category(Base):
+class Category(db.Model):
     """ Categories of juggling (balles, staff...)
     """
     __tablename__ = 'categories'
 
-    id = Column(String(50), primary_key=True)
-    name = Column(String(50))
-    description = Column(String(2000))
+    id = db.Column(db.String(50), primary_key=True)
+    name = db.Column(db.String(50))
+    description = db.Column(db.String(2000))
 
-    articles = relationship("Article", back_populates="category")
+    articles = db.relationship("Article", back_populates="category")
 
     def to_json(self):
         """ Return a json of the class
@@ -38,25 +31,25 @@ class Category(Base):
         return str(category_json)
 
 
-class Article(Base):
+class Article(db.Model):
     """ Contains the informations about an article
     """
     __tablename__ = 'articles'
 
-    id = Column(String(50), primary_key=True)
-    name = Column(String(50))
-    author = Column(String(30))
-    content = Column(String(10000))
-    description = Column(String(500))
-    creation_date = Column(DateTime)
-    last_modification_date = Column(DateTime)
-    is_beginner = Column(Boolean)
-    difficulty = Column(Integer)
-    category_id = Column(String(50), ForeignKey('categories.id'))
+    id = db.Column(db.String(50), primary_key=True)
+    name = db.Column(db.String(50))
+    author = db.Column(db.String(30))
+    content = db.Column(db.String(10000))
+    description = db.Column(db.String(500))
+    creation_date = db.Column(db.DateTime)
+    last_modification_date = db.Column(db.DateTime)
+    is_beginner = db.Column(db.Boolean)
+    difficulty = db.Column(db.Integer)
+    category_id = db.Column(db.String(50), db.ForeignKey('categories.id'))
 
-    category = relationship('Category', back_populates='articles')
-    tags = relationship('Tag', secondary=article_to_tag,
-                        back_populates="articles")
+    category = db.relationship('Category', back_populates='articles')
+    tags = db.relationship('Tag', secondary=article_to_tag,
+                           back_populates="articles")
 
     def to_json(self):
         """ Return a json of the class
@@ -86,17 +79,17 @@ class Article(Base):
         return article_dict
 
 
-class Tag(Base):
+class Tag(db.Model):
     """ Contains the information on a tag
     """
     __tablename__ = 'tags'
 
-    id = Column(String(50), primary_key=True)
-    name = Column(String(50))
-    description = Column(String(200))
+    id = db.Column(db.String(50), primary_key=True)
+    name = db.Column(db.String(50))
+    description = db.Column(db.String(200))
 
-    articles = relationship('Article', secondary=article_to_tag,
-                            back_populates='tags')
+    articles = db.relationship('Article', secondary=article_to_tag,
+                                back_populates='tags')
 
     def to_json(self):
         """ Return a json of the class

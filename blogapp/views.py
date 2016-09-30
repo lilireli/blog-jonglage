@@ -10,11 +10,10 @@ import os
 from flask import (Flask, Response, render_template, request,
                    send_from_directory)
 from flask_httpauth import HTTPBasicAuth
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from flask_sqlalchemy import SQLAlchemy
 
-from models import Category, Article, Tag, Base
+from models import Category, Article, Tag
+from database import db
 
 app = Flask('__app__', template_folder='blogapp/templates',
             static_folder='blogapp/static', instance_relative_config=True)
@@ -35,13 +34,10 @@ locale.setlocale(locale.LC_TIME, app.config['LOCALE'])
 
 # Connexion information
 if 'DB_PASSWORD' in app.config:
-    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI']
-                              .replace(':@', ':' + app.config['DB_PASSWORD']
-                                       + '@'))
-else:
-    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
-Session = sessionmaker(bind=engine)
-session = Session()
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        app.config['SQLALCHEMY_DATABASE_URI']
+        .replace(':@', ':' + app.config['DB_PASSWORD'] + '@'))
+db.init_app(app)
 
 # Authentication
 auth = HTTPBasicAuth()
@@ -70,7 +66,7 @@ def index(page=1):
     """ Return the last articles for the selectionned page
     """
     # The total number of pages
-    nb_page = ((session.query(Article).count() - 1)
+    nb_page = ((db.session.query(Article).count() - 1)
                / app.config['NB_ARTICLES_BY_PAGE']) + 1
 
     # Links onto the pages
@@ -78,7 +74,7 @@ def index(page=1):
              for i in range(1, nb_page + 1)]
 
     # Retrieving and formatting of the articles
-    query_articles = (session.query(Article)
+    query_articles = (db.session.query(Article)
                              .order_by(Article.creation_date.desc()))
     articles = [art.to_data(app.config['DATE_STRING_FORMAT']) for art
                 in query_articles[(page - 1) *
@@ -106,11 +102,11 @@ def get_category(category):
     """ Send the HTML page for a category with all its articles
     """
     # Retrieving the information about the categories
-    query_cat = session.query(Category).filter_by(id=category)
+    query_cat = db.session.query(Category).filter_by(id=category)
     categories = query_cat.all()
 
     # Retrieving the beginners links (articles which are for beginners)
-    query_beginner = (session.query(Article.name, Article.id)
+    query_beginner = (db.session.query(Article.name, Article.id)
                              .filter_by(category_id=category,
                                         is_beginner=True))
     beginner_links = [{'name': bl[0], 'link': '/articles/' + bl[1]}
@@ -140,7 +136,7 @@ def get_category(category):
             "beginner_links": beginner_links,
             "tags": tags
           }
-        return render_template('general-template.html', data=data,
+        return render_template('general-template.html', data=json.dumps(data),
                                type_js='category')
     # If there is no categories, send an error
     else:
@@ -152,7 +148,7 @@ def get_category(category):
 def get_json_category(category_id):
     """ Retrieve a category on JSON. Useful to modify it after
     """
-    query = session.query(Category).filter_by(id=category_id)
+    query = db.session.query(Category).filter_by(id=category_id)
     categories = query.all()
     if len(categories) == 1:
         return categories[0].to_json()
@@ -166,7 +162,7 @@ def modify_category(category_id):
     """ Modify a category. All the fields are optionnal
     """
     if request.method == 'POST':
-        query = session.query(Category).filter_by(id=category_id)
+        query = db.session.query(Category).filter_by(id=category_id)
         categories = query.all()
         if len(categories) == 1:
             category = categories[0]
@@ -175,7 +171,7 @@ def modify_category(category_id):
             category.description = (request.form['description']
                                     if 'description' in request.form
                                     else category.description)
-            session.commit()
+            db.session.commit()
             return Response('Category modified')
         else:
             return Response('error')
@@ -190,8 +186,8 @@ def create_category():
         category = Category(name=request.form['name'],
                             description=request.form['description'],
                             id=request.form['name'].lower())
-        session.add(category)
-        session.commit()
+        db.session.add(category)
+        db.session.commit()
         return Response('Category saved')
 
 
@@ -201,14 +197,14 @@ def delete_category(category_id):
     """ Deletion of a category
     """
     if request.method == 'DELETE':
-        query = session.query(Category).filter_by(id=category_id)
+        query = db.session.query(Category).filter_by(id=category_id)
         categories = query.all()
 
         # Verification that the category exists
         if len(categories) == 1:
             category = categories[0]
-            session.delete(category)
-            session.commit()
+            db.session.delete(category)
+            db.session.commit()
             return Response('Category deleted')
 
         # If there is no categories, return an error
@@ -221,7 +217,7 @@ def delete_category(category_id):
 @app.route('/articles/<article>')
 def get_article(article):
     # Retrieve the informations on the article
-    query = session.query(Article).filter_by(id=article)
+    query = db.session.query(Article).filter_by(id=article)
     articles = query.all()
 
     # Verify the number of articles
@@ -275,7 +271,7 @@ def create_article():
         tags = []
         tags_name = request.form['tags'].split(',')
         for tag_name in tags_name:
-            query = session.query(Tag).filter_by(id=tag_name)
+            query = db.session.query(Tag).filter_by(id=tag_name)
             current_tags = query.all()
             # We retrieve the tag if it exists
             if len(current_tags) == 1:
@@ -292,8 +288,8 @@ def create_article():
             last_modification_date=now, is_beginner=is_beginner,
             description=request.form['description'], id=id_art, tags=tags,
             difficulty=request.form['difficulty'])
-        session.add(article)
-        session.commit()
+        db.session.add(article)
+        db.session.commit()
         return Response('Article saved')
 
 
@@ -302,7 +298,7 @@ def create_article():
 def get_json_article(article_id):
     """ Retrieve an article on JSON. Useful to modify it after
     """
-    query = session.query(Article).filter_by(id=article_id)
+    query = db.session.query(Article).filter_by(id=article_id)
     articles = query.all()
     if len(articles) == 1:
         return articles[0].to_json()
@@ -320,7 +316,7 @@ def modify_article(article_id):
         now = datetime.datetime.now()
 
         # Retrieve the article
-        query = session.query(Article).filter_by(id=article_id)
+        query = db.session.query(Article).filter_by(id=article_id)
         articles = query.all()
 
         # Verify the number of articles
@@ -354,7 +350,7 @@ def modify_article(article_id):
                 tags = []
                 tags_name = request.form['tags'].split(',')
                 for tag_name in tags_name:
-                    query = session.query(Tag).filter_by(id=tag_name)
+                    query = db.session.query(Tag).filter_by(id=tag_name)
                     current_tags = query.all()
                     if len(current_tags) == 1:
                         tags.append(current_tags[0])
@@ -364,7 +360,7 @@ def modify_article(article_id):
                 article.tags = tags
 
             article.last_modification_date = now
-            session.commit()
+            db.session.commit()
             return Response('Article modified')
 
         # If there is no articles, return an error
@@ -378,14 +374,14 @@ def delete_article(article_id):
     """ Delete an article
     """
     if request.method == 'DELETE':
-        query = session.query(Article).filter_by(id=article_id)
+        query = db.session.query(Article).filter_by(id=article_id)
         articles = query.all()
 
         # Verify the number of articles
         if len(articles) == 1:
             article = articles[0]
-            session.delete(article)
-            session.commit()
+            db.session.delete(article)
+            db.session.commit()
             return Response("Article deleted")
 
         # If there is no articles, return an error
@@ -400,7 +396,7 @@ def delete_article(article_id):
 def get_json_tag(tag_id):
     """ Retrieve a tag on JSON. Useful to modify it after
     """
-    query = session.query(Tag).filter_by(id=tag_id)
+    query = db.session.query(Tag).filter_by(id=tag_id)
     tags = query.all()
     if len(tags) == 1:
         return tags[0].to_json()
@@ -414,7 +410,7 @@ def modify_tag(tag_id):
     """ Modify a tag. All the fields are optionnal
     """
     if request.method == 'POST':
-        query = session.query(Tag).filter_by(id=tag_id)
+        query = db.session.query(Tag).filter_by(id=tag_id)
         tags = query.all()
 
         # Verify that the tag exist
@@ -425,7 +421,7 @@ def modify_tag(tag_id):
             tag.description = (request.form['description']
                                if 'description' in request.form
                                else tag.description)
-            session.commit()
+            db.session.commit()
             return 'Tag modified'
 
         # If there is no tags, return an error
@@ -442,8 +438,8 @@ def create_tag():
         tag = Tag(name=request.form['name'],
                   description=request.form['description'],
                   id=request.form['name'].lower())
-        session.add(tag)
-        session.commit()
+        db.session.add(tag)
+        db.session.commit()
         return Response('Tag saved')
 
 
@@ -453,14 +449,14 @@ def delete_tag(tag_id):
     """ Delete a tag
     """
     if request.method == 'DELETE':
-        query = session.query(Tag).filter_by(id=tag_id)
+        query = db.session.query(Tag).filter_by(id=tag_id)
         tags = query.all()
 
         # Verify tag the tag exist
         if len(tags) == 1:
             tag = tags[0]
-            session.delete(tag)
-            session.commit()
+            db.session.delete(tag)
+            db.session.commit()
             return Response('Tag deleted')
 
         # If there is no tags, return an error
@@ -473,14 +469,14 @@ def delete_tag(tag_id):
 def initialize():
     """ Initialize the database (creation of table, fill in with categories...)
     """
-    Base.metadata.create_all(engine)
+    db.create_all()
     with open('blogapp/categories.json') as json_data:
         for category in json.load(json_data):
             ed_category = Category(id=category['id'], name=category['name'],
                                    description=category['description'])
-            session.add(ed_category)
+            db.session.add(ed_category)
 
-    session.commit()
+    db.session.commit()
     return Response('Database initialized')
 
 # Swagger
@@ -489,7 +485,6 @@ def initialize():
 @app.route('/swagger/<path:filename>')
 @auth.login_required
 def swagger(filename):
-    print dir(app)
     return send_from_directory(
         'blogapp/swagger', filename)
 
