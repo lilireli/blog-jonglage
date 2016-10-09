@@ -15,7 +15,7 @@ var Tags = React.createClass({
 
 var ArticleSmall = React.createClass({
   handleClick: function() {
-    window.location = this.props.id;
+    window.location = "/articles/" + this.props.data.id;
   },
   render: function() {
     return (

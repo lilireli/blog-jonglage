@@ -25,7 +25,7 @@ var Article = React.createClass({
         <p className="w3-text-grey">Par <b>{this.props.data.author}</b> le {this.props.data.creation_date} (modifié le {this.props.data.last_modification_date})</p>
         <div className="w3-section w3-bottombar"></div>
 
-        <div dangerouslySetInnerHTML={{__html: this.props.data.content}}></div>
+        <div className="article" dangerouslySetInnerHTML={{__html: this.props.data.content}}></div>
       </div>
     );
   }
