@@ -1,6 +1,6 @@
 var ArticleSmall = React.createClass({
   handleClick: function() {
-    window.location = this.props.data.id;
+    window.location = "/articles/" + this.props.data.id;
   },
   render: function() {
     return (
