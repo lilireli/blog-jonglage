@@ -52,10 +52,10 @@ def verify_password(username, password):
     return True
 
 
-def convert_to_bool(string):
+def convert_to_bool(bool):
     """ Convert a string into boolean
     """
-    return True if bool == 'True' else False
+    return True if (bool == 'True' or bool == 'true') else False
 
 # Index route
 
@@ -121,7 +121,7 @@ def get_category(category):
         # Formatting of articles and tags
         for article in articles:
             for tag in article.tags:
-                articles_by_tags[(tag.id, tag.name)].append(
+                articles_by_tags[(tag.name, tag.description)].append(
                     {"name": article.name, "description": article.description,
                      "id": article.id, "difficulty": int(article.difficulty)})
         tags = [{"name": k[0], "description": k[1],
@@ -278,7 +278,9 @@ def create_article():
                 tags.append(current_tags[0])
             # Else we create it
             else:
-                tags.append(Tag(name=tag_name, id=tag_name.lower()))
+                tags.append(Tag(name=tag_name,
+                                id=tag_name.lower().replace(' ', ''),
+                                description=''))
 
         is_beginner = convert_to_bool(request.form['is_beginner'])
         article = Article(
@@ -356,7 +358,8 @@ def modify_article(article_id):
                         tags.append(current_tags[0])
                     else:
                         tags.append(Tag(name=tag_name,
-                                        id=tag_name.lower()))
+                                        id=tag_name.lower(),
+                                        description=''))
                 article.tags = tags
 
             article.last_modification_date = now
