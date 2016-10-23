@@ -60,13 +60,13 @@ class MDToHTMLParser:
     def replace_list(self, previous_line_md, line_md, next_line_md, t_list):
         line_html = []
 
-        if self.find_type_line(previous_line_md) == t_list:
+        if self.find_type_line(previous_line_md) != t_list:
             line_html.append("<%s>\n" % self.config[t_list]['main_tag'])
 
-        line_tmp = re.sub(self.config[t_list]['marker'], "", line_md)
+        line_tmp = re.sub(self.config[t_list]['marker'], "", line_md, 1)
         line_html.append(self.replace_to_tag(line_tmp, self.config[t_list]['tag']))
 
-        if self.find_type_line(next_line_md) == t_list:
+        if self.find_type_line(next_line_md) != t_list:
             line_html.append("</%s>\n" % self.config[t_list]['main_tag'])
 
         return "".join(line_html)
