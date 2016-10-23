@@ -56,9 +56,25 @@ var Footer = React.createClass({
         return (
           <footer className="w3-container w3-padding-32 w3-white">
           <div className="w3-row-padding">
-            <div className="w3-third">
+            <div className="w3-quarter">
               <p>ABOUT</p>
-              <p>Powered by <a href="/categories/http://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+              <p>Nous contacter : {'jonglage<at>bwatt.eu'}</p>
+            </div>
+
+            <div className="w3-half w3-center">
+              <p>
+                Powered by <a href="http://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a>, <a href="https://facebook.github.io/react/" target="_blank">React</a>, <a href="http://flask.pocoo.org/" target="_blank">Flask</a> and <a href="https://mariadb.org/" target="_blank">MariaDB</a>
+                <br/>
+                Engineered with <a href="https://github.com/lilireli/blog-jonglage" target="_blank">a Github project</a>
+              </p>
+            </div>
+
+            <div className="w3-quarter">
+              <p>
+                <a rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/fr/">
+                  <img alt="Licence Creative Commons" className="licence w3-display-right" src="https://i.creativecommons.org/l/by-nc/3.0/fr/88x31.png" />
+                </a>
+              </p>
             </div>
           </div>
           </footer>

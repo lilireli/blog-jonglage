@@ -26,6 +26,11 @@ footer {
 	bottom: 0;
 }
 
+footer .licence {
+  border-width: 0;
+  float: right;
+}
+
 .uppercase {
   text-transform: uppercase;
 }
