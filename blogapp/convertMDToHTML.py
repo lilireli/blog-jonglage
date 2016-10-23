@@ -109,7 +109,7 @@ class MDToHTMLParser:
                 pass
             else:
                 l_html = self.parse_style(l_md)
-                l_html = self.parse_link(l_html)
+                #l_html = self.parse_link(l_html)
 
                 line_type = self.find_type_line(l_html)
                 if line_type == "title":
