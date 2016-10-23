@@ -9,7 +9,7 @@ var Menu = React.createClass({
           <div>
             <nav className="w3-sidenav w3-collapse w3-white w3-animate-left w3-padding-top" id="mySidenav">
               <div className="w3-container">
-                <a href="/categories/#" onClick={this.close} className="w3-hide-large w3-right w3-jumbo w3-padding" title="close menu">
+                <a href="" onClick={this.close} className="w3-hide-large w3-right w3-jumbo w3-padding" title="close menu">
                   <i className="fa fa-remove"></i>
                 </a>
                 <img src="/static/img/img_menu.JPG" className="w3-round"></img>
@@ -44,7 +44,7 @@ var MenuMobile = React.createClass({
     render: function() {
         return (
           <header className="w3-container">
-            <a href="/categories/#"><img src="img_avatar_g2.jpg" className="w3-circle w3-right w3-margin w3-hide-large w3-hover-opacity"></img></a>
+            <a href=""><img src="/static/img/img_menu.JPG" className="w3-circle w3-right w3-margin w3-hide-large w3-hover-opacity"></img></a>
             <span className="w3-opennav w3-hide-large w3-xxlarge w3-hover-text-grey" onClick={this.open}><i className="fa fa-bars"></i></span>
           </header>
         )
