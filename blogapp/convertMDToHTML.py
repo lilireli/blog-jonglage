@@ -41,9 +41,7 @@ class MDToHTMLParser:
     }
 
     def replace_to_tag(self, line, tag=config['paragraph']['tag']):
-        line_html = "<%s>%s</%s>" % (tag, line, tag)
-        if line_html.find("\n"):
-            line_html = "%s\n" % line_html.replace("\n", "")
+        line_html = "<%s>%s</%s>\n" % (tag, line, tag)
         return line_html
 
     def replace_title(self, line_md):
@@ -104,8 +102,10 @@ class MDToHTMLParser:
     def parse(self, txt_md):
         txt_html = []
 
-        for idx, l_md in enumerate(txt_md):
-            if l_md == '\n':  # empty line
+        txt_md_lines = txt_md.split("\n")
+
+        for idx, l_md in enumerate(txt_md_lines):
+            if l_md == '':
                 pass
             else:
                 l_html = self.parse_style(l_md)
@@ -116,7 +116,7 @@ class MDToHTMLParser:
                     txt_html.append(self.replace_title(l_html))
                 elif line_type == "list_unordered" or line_type == "list_ordered":
                     txt_html.append(self.replace_list(
-                                    txt_md[idx-1], l_html, txt_md[idx+1], line_type))
+                                    txt_md_lines[idx-1], l_html, txt_md_lines[idx+1], line_type))
                 else:
                     txt_html.append(self.replace_to_tag(l_html))
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     filename = sys.argv[1]
 
     with open(filename, 'r') as fd_r:
-        article_md = fd_r.readlines()
+        article_md = fd_r.read()
 
     parser = MDToHTMLParser()
     article_html = parser.parse(article_md)
