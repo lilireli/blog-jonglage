@@ -31,6 +31,10 @@ footer .licence {
   float: right;
 }
 
+footer .about {
+  text-decoration: none;
+}
+
 .uppercase {
   text-transform: uppercase;
 }

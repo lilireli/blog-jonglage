@@ -57,7 +57,7 @@ var Footer = React.createClass({
           <footer className="w3-container w3-padding-32 w3-white">
           <div className="w3-row-padding">
             <div className="w3-quarter">
-              <p>ABOUT</p>
+              <p><a className="about" href="/about">ABOUT</a></p>
               <p>Nous contacter : {'jonglage<at>bwatt.eu'}</p>
             </div>
 
