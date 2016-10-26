@@ -14,6 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from models import Category, Article, Tag
 from database import db
+from convertMDToHTML import MDToHTMLParser
 
 app = Flask('__app__', template_folder='blogapp/templates',
             static_folder='blogapp/static', instance_relative_config=True)
@@ -93,6 +94,12 @@ def index(page=1):
     }
     return render_template('general-template.html', data=json.dumps(data),
                            type_js='home')
+
+@app.route('/about')
+def about():
+    data = {}
+    return render_template('general-template.html', data=json.dumps(data),
+                           type_js='about')
 
 # Routes for categories (retrieve in JSON and HTML, modify, delete, create)
 
@@ -225,6 +232,10 @@ def get_article(article):
         article = articles[0]
         tags = [{"name": t.name} for t in article.tags]
 
+        # Use parser to transform markdown into HTML
+        parser = MDToHTMLParser()
+        content_html = parser.parse(article.content)
+
         # The data with wich fill in the page
         data = {
             "name": article.name,
@@ -233,7 +244,7 @@ def get_article(article):
             "url": article.id,
             "category": article.category.name,
             "page_type": article.category.name,
-            "content": article.content,
+            "content": content_html,
             "difficulty": article.difficulty,
             "creation_date": article.creation_date.strftime(
                 app.config['DATE_STRING_FORMAT']),
@@ -283,6 +294,8 @@ def create_article():
                                 description=''))
 
         is_beginner = convert_to_bool(request.form['is_beginner'])
+        
+
         article = Article(
             name=request.form['name'], author=request.form['author'],
             content=request.form['content'],
