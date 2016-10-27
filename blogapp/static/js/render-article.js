@@ -15,6 +15,13 @@ var Tags = React.createClass({
 
 var Article = React.createClass({
   render: function() {
+    let article_date;
+    if (this.props.data.creation_date != this.props.data.last_modification_date) {
+      article_date = <span>le {this.props.data.creation_date} (modifié le {this.props.data.last_modification_date})</span>;
+    } else {
+      article_date = <span>le {this.props.data.creation_date}</span>;
+    }
+
     return (
       <div>
         <p>
@@ -22,7 +29,7 @@ var Article = React.createClass({
           <Tags data={this.props.data.tags} />
         </p>
         <h1><b>{this.props.data.name}</b></h1>
-        <p className="w3-text-grey">Par <b>{this.props.data.author}</b> le {this.props.data.creation_date} (modifié le {this.props.data.last_modification_date})</p>
+        <p className="w3-text-grey">Par <b>{this.props.data.author}</b> {article_date}</p>
         <div className="w3-section w3-bottombar"></div>
 
         <div className="article" dangerouslySetInnerHTML={{__html: this.props.data.content}}></div>
