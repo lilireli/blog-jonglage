@@ -67,11 +67,6 @@ paths:
           description: Name of the category
           required: true
           type: string
-        - name: id
-          in: formData
-          description: Id of the category
-          required: true
-          type: string
         - name: description
           in: formData
           required: false
@@ -266,11 +261,6 @@ paths:
         - name: name
           in: formData
           description: Name of the tag
-          required: true
-          type: string
-        - name: id
-          in: formData
-          description: Id of the tag
           required: true
           type: string
         - name: description

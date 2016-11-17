@@ -8,7 +8,7 @@ from collections import defaultdict
 import os
 
 from flask import (Flask, Response, render_template, request,
-                   send_from_directory)
+                   send_from_directory, Blueprint)
 from flask_httpauth import HTTPBasicAuth
 from flask_sqlalchemy import SQLAlchemy
 
@@ -16,29 +16,44 @@ from models import Category, Article, Tag
 from database import db
 from convertMDToHTML import MDToHTMLParser
 
-app = Flask('__app__', template_folder='blogapp/templates',
-            static_folder='blogapp/static', instance_relative_config=True)
+tags_blueprint = Blueprint('tags', __name__)
+articles_blueprint = Blueprint('articles', __name__)
+categories_blueprint = Blueprint('categories', __name__)
+general_blueprint = Blueprint('general', __name__)
 
+def create_app(test=False):
+    app = Flask('__app__', template_folder='blogapp/templates',
+                static_folder='blogapp/static', instance_relative_config=True)
 
-# Load the default configuration
-app.config.from_pyfile('../config/default.py')
+    # Load the default configuration
+    app.config.from_pyfile('../config/default.py')
 
-# Load the configuration from the instance folder (not versioned)
-app.config.from_pyfile('config.py')
+    if not test:
+        # Load the configuration from the instance folder (not versioned)
+        app.config.from_pyfile('config.py')
 
-# Load the file specified by the APP_CONFIG_FILE environment variable
-# Variables defined here will override those in the default configuration
-app.config.from_envvar('APP_CONFIG_FILE')
+        # Load the file specified by the APP_CONFIG_FILE environment variable
+        # Variables defined here will override those in the default configuration
+        app.config.from_envvar('APP_CONFIG_FILE')
 
-# Set the locale to send datetime with locale format
-locale.setlocale(locale.LC_TIME, app.config['LOCALE'])
+    else:
+        app.config.from_pyfile('../config/test.py')
 
-# Connexion information
-if 'DB_PASSWORD' in app.config:
-    app.config['SQLALCHEMY_DATABASE_URI'] = (
-        app.config['SQLALCHEMY_DATABASE_URI']
-        .replace(':@', ':' + app.config['DB_PASSWORD'] + '@'))
-db.init_app(app)
+    # Set the locale to send datetime with locale format
+    locale.setlocale(locale.LC_TIME, app.config['LOCALE'])
+
+    app.register_blueprint(tags_blueprint, url_prefix='/tags')
+    app.register_blueprint(articles_blueprint, url_prefix='/articles')
+    app.register_blueprint(categories_blueprint, url_prefix='/categories')
+    app.register_blueprint(general_blueprint)
+
+    # Connexion information
+    if 'DB_PASSWORD' in app.config:
+        app.config['SQLALCHEMY_DATABASE_URI'] = (
+            app.config['SQLALCHEMY_DATABASE_URI']
+            .replace(':@', ':' + app.config['DB_PASSWORD'] + '@'))
+    db.init_app(app)
+    return app
 
 # Authentication
 auth = HTTPBasicAuth()
@@ -58,11 +73,24 @@ def convert_to_bool(bool):
     """
     return True if (bool == 'True' or bool == 'true') else False
 
+
+def identifize(name):
+    """ Transform a name into id (lower and replace spaces into dashes)
+    """
+    # The id is the name lowered and without accent
+    id_art = name.lower()
+    id_art = id_art.replace(' ', '-')
+
+    # allows to remove accents
+    nfkd_form = unicodedata.normalize('NFKD', id_art)
+    id_art = nfkd_form.encode('ASCII', 'ignore')
+    return id_art
+
 # Index route
 
 
-@app.route('/')
-@app.route('/page/<int:page>')
+@general_blueprint.route('/')
+@general_blueprint.route('/page/<int:page>')
 def index(page=1):
     """ Return the last articles for the selectionned page
     """
@@ -95,16 +123,40 @@ def index(page=1):
     return render_template('general-template.html', data=json.dumps(data),
                            type_js='home')
 
-@app.route('/about')
+@general_blueprint.route('/about')
 def about():
     data = {}
     return render_template('general-template.html', data=json.dumps(data),
                            type_js='about')
 
+@general_blueprint.route('/initialize')
+@auth.login_required
+def initialize():
+    """ Initialize the database (creation of table, fill in with categories...)
+    """
+    db.create_all()
+    with open('blogapp/categories.json') as json_data:
+        for category in json.load(json_data):
+            ed_category = Category(id=category['id'], name=category['name'],
+                                   description=category['description'])
+            db.session.add(ed_category)
+
+    db.session.commit()
+    return Response('Database initialized')
+
+
+# Swagger
+
+@general_blueprint.route('/swagger/<path:filename>')
+@auth.login_required
+def swagger(filename):
+    return send_from_directory(
+        'blogapp/swagger', filename)
+
 # Routes for categories (retrieve in JSON and HTML, modify, delete, create)
 
 
-@app.route('/categories/<category>')
+@categories_blueprint.route('/<category>')
 def get_category(category):
     """ Send the HTML page for a category with all its articles
     """
@@ -150,7 +202,7 @@ def get_category(category):
         return Response('error')
 
 
-@app.route('/categories/<category_id>/json')
+@categories_blueprint.route('/<category_id>/json')
 @auth.login_required
 def get_json_category(category_id):
     """ Retrieve a category on JSON. Useful to modify it after
@@ -163,7 +215,7 @@ def get_json_category(category_id):
         return Response('error')
 
 
-@app.route('/categories/<category_id>/modify', methods=['POST'])
+@categories_blueprint.route('/<category_id>/modify', methods=['POST'])
 @auth.login_required
 def modify_category(category_id):
     """ Modify a category. All the fields are optionnal
@@ -184,7 +236,7 @@ def modify_category(category_id):
             return Response('error')
 
 
-@app.route('/categories/create', methods=['POST'])
+@categories_blueprint.route('/create', methods=['POST'])
 @auth.login_required
 def create_category():
     """ Creation of a category
@@ -192,13 +244,13 @@ def create_category():
     if request.method == 'POST':
         category = Category(name=request.form['name'],
                             description=request.form['description'],
-                            id=request.form['name'].lower())
+                            id=identifize(request.form['name']))
         db.session.add(category)
         db.session.commit()
         return Response('Category saved')
 
 
-@app.route('/categories/<category_id>/delete', methods=['DELETE'])
+@categories_blueprint.route('/<category_id>/delete', methods=['DELETE'])
 @auth.login_required
 def delete_category(category_id):
     """ Deletion of a category
@@ -221,7 +273,7 @@ def delete_category(category_id):
 # Routes for articles (retrieve in HTML and JSON, modify, delete, create)
 
 
-@app.route('/articles/<article>')
+@articles_blueprint.route('/<article>')
 def get_article(article):
     # Retrieve the informations on the article
     query = db.session.query(Article).filter_by(id=article)
@@ -261,7 +313,7 @@ def get_article(article):
         return Response('error')
 
 
-@app.route('/articles/create', methods=["POST"])
+@articles_blueprint.route('/create', methods=["POST"])
 @auth.login_required
 def create_article():
     """ Create an article. The creation_date and the last_modification_date
@@ -270,13 +322,7 @@ def create_article():
     if request.method == "POST":
         now = datetime.datetime.now()
 
-        # The id is the name of the article lowered and without accent
-        id_art = request.form['name'].lower()
-        id_art = id_art.replace(' ', '-')
-
-        # allows to remove accents
-        nfkd_form = unicodedata.normalize('NFKD', id_art)
-        id_art = nfkd_form.encode('ASCII', 'ignore')
+        id_art = identifize(request.form['name'])
 
         # Retrieve of the tags. If it doesn't exist, it is created
         tags = []
@@ -308,7 +354,7 @@ def create_article():
         return Response('Article saved')
 
 
-@app.route('/articles/<article_id>/json')
+@articles_blueprint.route('/<article_id>/json')
 @auth.login_required
 def get_json_article(article_id):
     """ Retrieve an article on JSON. Useful to modify it after
@@ -321,7 +367,7 @@ def get_json_article(article_id):
         return Response('error')
 
 
-@app.route('/articles/<article_id>/modify', methods=['POST'])
+@articles_blueprint.route('/<article_id>/modify', methods=['POST'])
 @auth.login_required
 def modify_article(article_id):
     """ Modification of an article. The last_modification_date is also updated
@@ -384,7 +430,7 @@ def modify_article(article_id):
             return Response('error')
 
 
-@app.route('/articles/<article_id>/delete', methods=['DELETE'])
+@articles_blueprint.route('/<article_id>/delete', methods=['DELETE'])
 @auth.login_required
 def delete_article(article_id):
     """ Delete an article
@@ -407,7 +453,7 @@ def delete_article(article_id):
 # Routes for tags (retrieve in JSON and HTML, modify, delete, create)
 
 
-@app.route('/tags/<tag_id>/json')
+@tags_blueprint.route('/<tag_id>/json')
 @auth.login_required
 def get_json_tag(tag_id):
     """ Retrieve a tag on JSON. Useful to modify it after
@@ -420,7 +466,7 @@ def get_json_tag(tag_id):
         return Response('error')
 
 
-@app.route('/tags/<tag_id>/modify', methods=['POST'])
+@tags_blueprint.route('/<tag_id>/modify', methods=['POST'])
 @auth.login_required
 def modify_tag(tag_id):
     """ Modify a tag. All the fields are optionnal
@@ -445,21 +491,24 @@ def modify_tag(tag_id):
             return Response('error')
 
 
-@app.route('/tags/create', methods=['POST'])
+@tags_blueprint.route('/create', methods=['POST'])
 @auth.login_required
 def create_tag():
     """ Create a tag
     """
     if request.method == 'POST':
+        description = (request.form['description']
+                       if 'description' in request.form else None)
+        
         tag = Tag(name=request.form['name'],
-                  description=request.form['description'],
-                  id=request.form['name'].lower())
+                  description=description,
+                  id=identifize(request.form['name']))
         db.session.add(tag)
         db.session.commit()
         return Response('Tag saved')
 
 
-@app.route('/tags/<tag_id>/delete', methods=['DELETE'])
+@tags_blueprint.route('/<tag_id>/delete', methods=['DELETE'])
 @auth.login_required
 def delete_tag(tag_id):
     """ Delete a tag
@@ -480,29 +529,6 @@ def delete_tag(tag_id):
             return Response('error')
 
 
-@app.route('/initialize')
-@auth.login_required
-def initialize():
-    """ Initialize the database (creation of table, fill in with categories...)
-    """
-    db.create_all()
-    with open('blogapp/categories.json') as json_data:
-        for category in json.load(json_data):
-            ed_category = Category(id=category['id'], name=category['name'],
-                                   description=category['description'])
-            db.session.add(ed_category)
-
-    db.session.commit()
-    return Response('Database initialized')
-
-# Swagger
-
-
-@app.route('/swagger/<path:filename>')
-@auth.login_required
-def swagger(filename):
-    return send_from_directory(
-        'blogapp/swagger', filename)
-
 if __name__ == '__main__':
+    app = create_app()
     app.run()

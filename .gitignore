@@ -4,3 +4,4 @@ venv/*
 ex-curl
 instance/*
 start.sh
+.cache

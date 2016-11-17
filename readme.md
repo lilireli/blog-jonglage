@@ -29,6 +29,11 @@ You have next to set file excutable with a `chmod +x start.sh`
 * Create an user with the password defined in your secret configuration `CREATE USER name IDENTIFIED BY 'password';`
 * Allow the new user to access to the database `GRANT ALL PRIVILEGES ON jonglage.* TO 'name';`
 
+These steps are uniquely needed if you want to launch the unit test!
+* Create a database 'test' into MariaDB if you want to run the test `CREATE DATABASE test;`
+* Create an user test without password `CREATE USER test`
+* Allow the user test to access to the database test `GRANT ALL PRIVILEGES ON test.* TO 'test';`
+
 # Server launch
 
 Just launch `./start.sh`
