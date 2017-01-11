@@ -4,13 +4,10 @@ import json
 import datetime
 import unicodedata
 import locale
-from collections import defaultdict
-import os
 
 from flask import (Flask, Response, render_template, request,
-                   send_from_directory, Blueprint)
+                   send_from_directory, Blueprint, current_app, abort)
 from flask_httpauth import HTTPBasicAuth
-from flask_sqlalchemy import SQLAlchemy
 
 from models import Category, Article, Tag
 from database import db
@@ -20,6 +17,7 @@ tags_blueprint = Blueprint('tags', __name__)
 articles_blueprint = Blueprint('articles', __name__)
 categories_blueprint = Blueprint('categories', __name__)
 general_blueprint = Blueprint('general', __name__)
+
 
 def create_app(test=False):
     app = Flask('__app__', template_folder='blogapp/templates',
@@ -33,7 +31,8 @@ def create_app(test=False):
         app.config.from_pyfile('config.py')
 
         # Load the file specified by the APP_CONFIG_FILE environment variable
-        # Variables defined here will override those in the default configuration
+        # Variables defined here will override those in the default
+        # configuration
         app.config.from_envvar('APP_CONFIG_FILE')
 
     else:
@@ -61,11 +60,34 @@ auth = HTTPBasicAuth()
 
 @auth.verify_password
 def verify_password(username, password):
-    """ Verify that the username given is good. We use here a token, so the 
-    password is useless"""
-    if not username or username != app.config['TOKEN']:
+    """ Verify that the username given is good. We use here a token, so the
+     password is useless"""
+    if not username or username != current_app.config['TOKEN']:
         return False
     return True
+
+# Utils
+
+
+def get_index_articles(page):
+    """Retrieving and formatting of the articles
+    """
+    query_articles = (db.session.query(Article)
+                      .order_by(Article.creation_date.desc()))
+    articles = [art.to_data(current_app.config['DATE_STRING_FORMAT']) for art
+                in query_articles[
+                    (page - 1) * current_app.config['NB_ARTICLES_BY_PAGE']:
+                    page * current_app.config['NB_ARTICLES_BY_PAGE']]]
+    return articles
+
+
+def get_nb_pages():
+    # The total number of pages
+    nb_pages = ((db.session.query(Article).count() - 1)
+                / current_app.config['NB_ARTICLES_BY_PAGE']) + 1
+    # Even if there is no articles, we must have one page
+    nb_pages = 1 if nb_pages == 0 else nb_pages
+    return nb_pages
 
 
 def convert_to_bool(bool):
@@ -86,6 +108,27 @@ def identifize(name):
     id_art = nfkd_form.encode('ASCII', 'ignore')
     return id_art
 
+
+def get_or_create_tag(tags_name):
+        """Retrieve of the tags. If it doesn't exist, it is created
+        """
+        tags = []
+        for tag_name in tags_name:
+            query = db.session.query(Tag).filter_by(id=tag_name)
+            current_tags = query.all()
+            # We retrieve the tag if it exists
+            if len(current_tags) == 1:
+                tags.append(current_tags[0])
+            # Else we create it
+            else:
+                tag = Tag(name=tag_name,
+                          id=identifize(tag_name),
+                          description='')
+                db.session.add(tag)
+                db.session.commit()
+                tags.append(tag)
+        return tags
+
 # Index route
 
 
@@ -94,28 +137,22 @@ def identifize(name):
 def index(page=1):
     """ Return the last articles for the selectionned page
     """
-    # The total number of pages
-    nb_page = ((db.session.query(Article).count() - 1)
-               / app.config['NB_ARTICLES_BY_PAGE']) + 1
+
+    # Get the total number of pages
+    nb_pages = get_nb_pages()
 
     # Links onto the pages
     pages = [{"number": i, "link": "/page/" + str(i)}
-             for i in range(1, nb_page + 1)]
+             for i in range(1, nb_pages + 1)]
 
-    # Retrieving and formatting of the articles
-    query_articles = (db.session.query(Article)
-                             .order_by(Article.creation_date.desc()))
-    articles = [art.to_data(app.config['DATE_STRING_FORMAT']) for art
-                in query_articles[(page - 1) *
-                                  app.config['NB_ARTICLES_BY_PAGE']:page *
-                                  app.config['NB_ARTICLES_BY_PAGE']]]
+    articles = get_index_articles(nb_pages)
 
     # The data with wich fill in the page
     data = {
         "page_type": "home",
         "pagination": {
           "current_page": page,
-          "nb_page": nb_page,
+          "nb_page": nb_pages,
           "pages": pages
         },
         "articles": articles
@@ -123,11 +160,12 @@ def index(page=1):
     return render_template('general-template.html', data=json.dumps(data),
                            type_js='home')
 
+
 @general_blueprint.route('/about')
 def about():
-    data = {}
-    return render_template('general-template.html', data=json.dumps(data),
+    return render_template('general-template.html', data=json.dumps({}),
                            type_js='about')
+
 
 @general_blueprint.route('/initialize')
 @auth.login_required
@@ -147,6 +185,7 @@ def initialize():
 
 # Swagger
 
+
 @general_blueprint.route('/swagger/<path:filename>')
 @auth.login_required
 def swagger(filename):
@@ -164,28 +203,10 @@ def get_category(category):
     query_cat = db.session.query(Category).filter_by(id=category)
     categories = query_cat.all()
 
-    # Retrieving the beginners links (articles which are for beginners)
-    query_beginner = (db.session.query(Article.name, Article.id)
-                             .filter_by(category_id=category,
-                                        is_beginner=True))
-    beginner_links = [{'name': bl[0], 'link': '/articles/' + bl[1]}
-                      for bl in query_beginner.all()]
-
     # Verification that the category exists
     if len(categories) == 1:
         category = categories[0]
-        articles = category.articles
-        articles_by_tags = defaultdict(list)
-
-        # Formatting of articles and tags
-        for article in articles:
-            for tag in article.tags:
-                articles_by_tags[(tag.name, tag.description)].append(
-                    {"name": article.name, "description": article.description,
-                     "id": article.id, "difficulty": int(article.difficulty)})
-        tags = [{"name": k[0], "description": k[1],
-                 "articles": sorted(v, key=lambda art: art['difficulty'])}
-                for k, v in articles_by_tags.items()]
+        beginner_links, tags = category.get_tags_and_beginner_links()
 
         # The data with wich fill in the page
         data = {
@@ -199,7 +220,7 @@ def get_category(category):
                                type_js='category')
     # If there is no categories, send an error
     else:
-        return Response('error')
+        abort(404)
 
 
 @categories_blueprint.route('/<category_id>/json')
@@ -212,7 +233,7 @@ def get_json_category(category_id):
     if len(categories) == 1:
         return categories[0].to_json()
     else:
-        return Response('error')
+        abort(404)
 
 
 @categories_blueprint.route('/<category_id>/modify', methods=['POST'])
@@ -233,7 +254,7 @@ def modify_category(category_id):
             db.session.commit()
             return Response('Category modified')
         else:
-            return Response('error')
+            abort(404)
 
 
 @categories_blueprint.route('/create', methods=['POST'])
@@ -266,9 +287,9 @@ def delete_category(category_id):
             db.session.commit()
             return Response('Category deleted')
 
-        # If there is no categories, return an error
+        # If there is no categories, or more than one return an error
         else:
-            return Response('error')
+            abort(404)
 
 # Routes for articles (retrieve in HTML and JSON, modify, delete, create)
 
@@ -299,18 +320,19 @@ def get_article(article):
             "content": content_html,
             "difficulty": article.difficulty,
             "creation_date": article.creation_date.strftime(
-                app.config['DATE_STRING_FORMAT']),
+                current_app.config['DATE_STRING_FORMAT']),
             "last_modification_date": (article.last_modification_date
                                        .strftime(
-                                            app.config['DATE_STRING_FORMAT'])),
+                                            current_app.config['DATE_STRING_FORMAT'])),
             "tags": tags,
         }
-        return render_template('general-template.html', data=json.dumps(data),
+        return render_template('general-template.html',
+                               data=json.dumps(data),
                                type_js='article')
 
     # If there is no articles, return an error
     else:
-        return Response('error')
+        abort(404)
 
 
 @articles_blueprint.route('/create', methods=["POST"])
@@ -325,22 +347,9 @@ def create_article():
         id_art = identifize(request.form['name'])
 
         # Retrieve of the tags. If it doesn't exist, it is created
-        tags = []
-        tags_name = request.form['tags'].split(',')
-        for tag_name in tags_name:
-            query = db.session.query(Tag).filter_by(id=tag_name)
-            current_tags = query.all()
-            # We retrieve the tag if it exists
-            if len(current_tags) == 1:
-                tags.append(current_tags[0])
-            # Else we create it
-            else:
-                tags.append(Tag(name=tag_name,
-                                id=tag_name.lower().replace(' ', ''),
-                                description=''))
+        tags = get_or_create_tag(request.form['tags'].split(','))
 
         is_beginner = convert_to_bool(request.form['is_beginner'])
-        
 
         article = Article(
             name=request.form['name'], author=request.form['author'],
@@ -364,7 +373,7 @@ def get_json_article(article_id):
     if len(articles) == 1:
         return articles[0].to_json()
     else:
-        return Response('error')
+        abort(404)
 
 
 @articles_blueprint.route('/<article_id>/modify', methods=['POST'])
@@ -408,17 +417,7 @@ def modify_article(article_id):
 
             # We have also to create the tags if they don't exist
             if 'tags' in request.form:
-                tags = []
-                tags_name = request.form['tags'].split(',')
-                for tag_name in tags_name:
-                    query = db.session.query(Tag).filter_by(id=tag_name)
-                    current_tags = query.all()
-                    if len(current_tags) == 1:
-                        tags.append(current_tags[0])
-                    else:
-                        tags.append(Tag(name=tag_name,
-                                        id=tag_name.lower(),
-                                        description=''))
+                tags = get_or_create_tag(request.form['tags'].split(','))
                 article.tags = tags
 
             article.last_modification_date = now
@@ -427,7 +426,7 @@ def modify_article(article_id):
 
         # If there is no articles, return an error
         else:
-            return Response('error')
+            abort(404)
 
 
 @articles_blueprint.route('/<article_id>/delete', methods=['DELETE'])
@@ -448,7 +447,7 @@ def delete_article(article_id):
 
         # If there is no articles, return an error
         else:
-            return Response('error')
+            abort(404)
 
 # Routes for tags (retrieve in JSON and HTML, modify, delete, create)
 
@@ -463,7 +462,7 @@ def get_json_tag(tag_id):
     if len(tags) == 1:
         return tags[0].to_json()
     else:
-        return Response('error')
+        abort(404)
 
 
 @tags_blueprint.route('/<tag_id>/modify', methods=['POST'])
@@ -488,7 +487,7 @@ def modify_tag(tag_id):
 
         # If there is no tags, return an error
         else:
-            return Response('error')
+            abort(404)
 
 
 @tags_blueprint.route('/create', methods=['POST'])
@@ -499,7 +498,7 @@ def create_tag():
     if request.method == 'POST':
         description = (request.form['description']
                        if 'description' in request.form else None)
-        
+
         tag = Tag(name=request.form['name'],
                   description=description,
                   id=identifize(request.form['name']))
@@ -526,7 +525,7 @@ def delete_tag(tag_id):
 
         # If there is no tags, return an error
         else:
-            return Response('error')
+            abort(404)
 
 
 if __name__ == '__main__':

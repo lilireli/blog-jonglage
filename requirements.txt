@@ -17,10 +17,13 @@ mccabe==0.5.2
 mysql==0.0.1
 MySQL-python==1.2.5
 paramiko==2.0.0
+py==1.4.31
 pyasn1==0.1.9
 pycodestyle==2.0.0
 pycparser==2.14
 pyflakes==1.2.3
+pytest==3.0.4
+pytest-flask==0.10.0
 six==1.10.0
 SQLAlchemy==1.0.14
 Werkzeug==0.11.10
