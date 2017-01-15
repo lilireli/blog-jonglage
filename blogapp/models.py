@@ -3,7 +3,7 @@
 import json
 from collections import defaultdict
 
-from database import db
+from .database import db
 
 # Table to link articles and tags
 article_to_tag = db.Table('article_to_tag',

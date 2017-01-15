@@ -26,5 +26,5 @@ def truncate():
     db.session.commit()
 
 headers_authorization = {
-    'Authorization': 'Basic ' + b64encode("test:")
+    'Authorization': b'Basic ' + b64encode(b'test:')
 }

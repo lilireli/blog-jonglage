@@ -1,2 +1,2 @@
-SQLALCHEMY_DATABASE_URI = 'mysql://test@localhost/test'
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://test@localhost/test'
 TOKEN = 'test'

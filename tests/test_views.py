@@ -3,7 +3,7 @@
 import json
 from time import sleep
 
-from conftest import headers_authorization
+from .conftest import headers_authorization
 from blogapp.models import Article, Category, Tag
 from blogapp.views import (convert_to_bool, identifize, get_or_create_tag,
                            get_nb_pages, get_index_articles)
@@ -78,9 +78,9 @@ def test_convert_to_bool():
 
 
 def test_identifize():
-    assert identifize(u'Test') == 'test'
-    assert identifize(u'test 2') == 'test-2'
-    assert identifize(u'éèêàâîù') == 'eeeaaiu'
+    assert identifize('Test') == 'test'
+    assert identifize('test 2') == 'test-2'
+    assert identifize('éèêàâîù') == 'eeeaaiu'
 
 
 def test_get_or_create_tag(client, test_db, truncate):
@@ -93,7 +93,7 @@ def test_get_or_create_tag(client, test_db, truncate):
                 data=data_to_post_create)
 
     # Tests
-    tags = get_or_create_tag(['a-get-or-create-tag', u'another tag'])
+    tags = get_or_create_tag(['a-get-or-create-tag', 'another tag'])
     assert len(tags) == 2
     assert tags[0].id == 'a-get-or-create-tag'
     assert tags[0].name == 'a get or create tag'
@@ -160,9 +160,10 @@ def test_get_json_category(client, test_db, truncate):
     response = client.get('/categories/a-category-for-test-json/json',
                           headers=headers_authorization)
     assert response.status_code == 200
-    assert json.loads(response.data) == {'name': 'a category for test json',
-                                         'id': 'a-category-for-test-json',
-                                         'description': 'test category'}
+    assert json.loads(response.data.decode('utf-8')) == {
+        'name': 'a category for test json',
+        'id': 'a-category-for-test-json',
+        'description': 'test category'}
 
 
 def test_modify_category(client, test_db, truncate):
@@ -320,15 +321,16 @@ def test_get_json_article(client, test_db, truncate):
     response = client.get('/articles/an-article-for-test-json/json',
                           headers=headers_authorization)
     assert response.status_code == 200
-    assert json.loads(response.data) == {'name': 'an article for test json',
-                                         'id': 'an-article-for-test-json',
-                                         'author': 'a test author',
-                                         'content': 'a test content',
-                                         'category_id': 'a-test-category',
-                                         'is_beginner': True,
-                                         'tags': 'tag1,tag2',
-                                         'description': 'a test description',
-                                         'difficulty': '5'}
+    assert json.loads(response.data.decode('utf-8')) == {
+        'name': 'an article for test json',
+        'id': 'an-article-for-test-json',
+        'author': 'a test author',
+        'content': 'a test content',
+        'category_id': 'a-test-category',
+        'is_beginner': True,
+        'tags': 'tag1,tag2',
+        'description': 'a test description',
+        'difficulty': '5'}
 
 
 def test_modify_article(client, test_db, truncate):
@@ -356,8 +358,8 @@ def test_modify_article(client, test_db, truncate):
     # We must do that for have a different last_modification_date
     sleep(2)
 
-    data_to_post = {'name': 'another article',
-                    'tags': 'tag1,tag3'}
+    data_to_post = {"name": "another article",
+                    "tags": "tag1,tag3"}
     assert (client.post('/articles/a-modify-article/modify',
                         headers=headers_authorization, data=data_to_post)
             .status_code == 200)
@@ -423,9 +425,10 @@ def test_get_json_tag(client, test_db, truncate):
     response = client.get('/tags/a-tag-for-test-json/json',
                           headers=headers_authorization)
     assert response.status_code == 200
-    assert json.loads(response.data) == {'name': 'a tag for test json',
-                                         'id': 'a-tag-for-test-json',
-                                         'description': 'test tag'}
+    assert json.loads(response.data.decode('utf-8')) == {
+        'name': 'a tag for test json',
+        'id': 'a-tag-for-test-json',
+        'description': 'test tag'}
 
 
 def test_modify_tag(client, test_db, truncate):

@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from conftest import headers_authorization
+from .conftest import headers_authorization
 from blogapp.models import Category
 
 

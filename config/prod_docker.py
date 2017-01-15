@@ -1,2 +1,2 @@
-SQLALCHEMY_DATABASE_URI = 'mysql://bwuze:@database-jonglage/jonglage'
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://bwuze:@database-jonglage/jonglage'
 DEBUG = False

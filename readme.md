@@ -1,4 +1,4 @@
-This project is the creation of a blog onto the juggling.
+This project is the creation of a blog onto the juggling. It is in python 3.
 
 # Installation
 
@@ -33,6 +33,10 @@ These steps are uniquely needed if you want to launch the unit test!
 * Create a database 'test' into MariaDB if you want to run the test `CREATE DATABASE test;`
 * Create an user test without password `CREATE USER test`
 * Allow the user test to access to the database test `GRANT ALL PRIVILEGES ON test.* TO 'test';`
+
+# Test the application
+
+* I use py.test to launch my unit tests. There are all in the test folder. You can launch the unit tests with `py.test tests`
 
 # Server launch
 

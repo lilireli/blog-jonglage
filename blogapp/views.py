@@ -9,9 +9,9 @@ from flask import (Flask, Response, render_template, request,
                    send_from_directory, Blueprint, current_app, abort)
 from flask_httpauth import HTTPBasicAuth
 
-from models import Category, Article, Tag
-from database import db
-from convertMDToHTML import MDToHTMLParser
+from .models import Category, Article, Tag
+from .database import db
+from .convertMDToHTML import MDToHTMLParser
 
 tags_blueprint = Blueprint('tags', __name__)
 articles_blueprint = Blueprint('articles', __name__)
@@ -84,7 +84,7 @@ def get_index_articles(page):
 def get_nb_pages():
     # The total number of pages
     nb_pages = ((db.session.query(Article).count() - 1)
-                / current_app.config['NB_ARTICLES_BY_PAGE']) + 1
+                // current_app.config['NB_ARTICLES_BY_PAGE']) + 1
     # Even if there is no articles, we must have one page
     nb_pages = 1 if nb_pages == 0 else nb_pages
     return nb_pages
@@ -106,7 +106,7 @@ def identifize(name):
     # allows to remove accents
     nfkd_form = unicodedata.normalize('NFKD', id_art)
     id_art = nfkd_form.encode('ASCII', 'ignore')
-    return id_art
+    return str(id_art, 'utf-8')
 
 
 def get_or_create_tag(tags_name):
