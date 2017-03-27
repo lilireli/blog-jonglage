@@ -526,8 +526,3 @@ def delete_tag(tag_id):
         # If there is no tags, return an error
         else:
             abort(404)
-
-
-if __name__ == '__main__':
-    app = create_app()
-    app.run()
