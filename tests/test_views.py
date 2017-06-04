@@ -16,11 +16,16 @@ def test_get_nb_pages(client, test_db, truncate):
     # Test without articles
     assert get_nb_pages() == 1
 
-    # Creation of the category
+    # Creation of the categories
     data_to_post_create = {'name': 'a test category',
                            'description': 'test category'}
     client.post('/categories/create', headers=headers_authorization,
                 data=data_to_post_create)
+
+    data_to_post_create_journal = {'name': 'journal',
+                                   'description': 'journal category'}
+    client.post('/categories/create', headers=headers_authorization,
+                data=data_to_post_create_journal)
 
     # Creation of the articles
     for i in range(25):
@@ -31,12 +36,25 @@ def test_get_nb_pages(client, test_db, truncate):
                         "is_beginner": "True",
                         "tags": "tag1,tag2",
                         "description": "a test description",
+                     "difficulty": "5"}
+        client.post('/articles/create', data=data_to_post,
+                    headers=headers_authorization)
+
+    for i in range(25, 30):
+        data_to_post = {"name": "article {}".format(i),
+                        "author": "a test journal author",
+                        "content": "a test journal content",
+                        "category": "journal",
+                        "is_beginner": "True",
+                        "tags": "tag1,tag2",
+                        "description": "a test journal description",
                         "difficulty": "5"}
         client.post('/articles/create', data=data_to_post,
                     headers=headers_authorization)
 
     # Tests
     assert get_nb_pages() == 2
+    assert get_nb_pages(True) == 1
 
 
 def test_get_index_articles(client, test_db, truncate):
@@ -45,11 +63,16 @@ def test_get_index_articles(client, test_db, truncate):
     articles_0 = get_index_articles(1)
     assert not articles_0
 
-    # Creation of the category
+    # Creation of the categories
     data_to_post_create = {'name': 'a test category',
                            'description': 'test category'}
     client.post('/categories/create', headers=headers_authorization,
                 data=data_to_post_create)
+
+    data_to_post_create_journal = {'name': 'journal',
+                                   'description': 'journal category'}
+    client.post('/categories/create', headers=headers_authorization,
+                data=data_to_post_create_journal)
 
     # Creation of the articles
     for i in range(25):
@@ -64,11 +87,26 @@ def test_get_index_articles(client, test_db, truncate):
         client.post('/articles/create', data=data_to_post,
                     headers=headers_authorization)
 
+    for i in range(25, 30):
+        data_to_post = {"name": "article {}".format(i),
+                        "author": "a test journal author",
+                        "content": "a test journal content",
+                        "category": "journal",
+                        "is_beginner": "True",
+                        "tags": "tag1,tag2",
+                        "description": "a test journal description",
+                        "difficulty": "5"}
+        client.post('/articles/create', data=data_to_post,
+                    headers=headers_authorization)
+
     # Tests
     articles_1 = get_index_articles(1)
     assert len(articles_1) == 20
     articles_2 = get_index_articles(2)
-    assert len(articles_2) == 5
+    assert len(articles_2) == 10
+    articles_3 = get_index_articles(1, True)
+    assert len(articles_3) == 5
+    assert articles_3[0]["author"] == "a test journal author"
 
 
 def test_convert_to_bool():
@@ -146,6 +184,10 @@ def test_get_category(client, test_db, truncate):
 
     # Tests
     assert client.get('/categories/a-get-category').status_code == 200
+
+
+def test_get_journal(client, test_db, truncate):
+    assert client.get('/journal').status_code == 200
 
 
 def test_get_json_category(client, test_db, truncate):

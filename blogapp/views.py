@@ -69,11 +69,16 @@ def verify_password(username, password):
 # Utils
 
 
-def get_index_articles(page):
+def get_index_articles(page, journal=False):
     """Retrieving and formatting of the articles
     """
-    query_articles = (db.session.query(Article)
-                      .order_by(Article.creation_date.desc()))
+    if not journal:
+        query_articles = (db.session.query(Article)
+                          .order_by(Article.creation_date.desc()))
+    else:
+        query_articles = (db.session.query(Article)
+                          .filter_by(category_id='journal')
+                          .order_by(Article.creation_date.desc()))
     articles = [art.to_data(current_app.config['DATE_STRING_FORMAT']) for art
                 in query_articles[
                     (page - 1) * current_app.config['NB_ARTICLES_BY_PAGE']:
@@ -81,10 +86,15 @@ def get_index_articles(page):
     return articles
 
 
-def get_nb_pages():
+def get_nb_pages(journal=False):
     # The total number of pages
-    nb_pages = ((db.session.query(Article).count() - 1)
-                // current_app.config['NB_ARTICLES_BY_PAGE']) + 1
+    if not journal:
+        nb_pages = ((db.session.query(Article).count() - 1)
+                    // current_app.config['NB_ARTICLES_BY_PAGE']) + 1
+    else:
+        nb_pages = ((db.session.query(Article).filter_by(category_id='journal')
+                     .count() - 1)
+                    // current_app.config['NB_ARTICLES_BY_PAGE']) + 1
     # Even if there is no articles, we must have one page
     nb_pages = 1 if nb_pages == 0 else nb_pages
     return nb_pages
@@ -110,24 +120,24 @@ def identifize(name):
 
 
 def get_or_create_tag(tags_name):
-        """Retrieve of the tags. If it doesn't exist, it is created
-        """
-        tags = []
-        for tag_name in tags_name:
-            query = db.session.query(Tag).filter_by(id=tag_name)
-            current_tags = query.all()
-            # We retrieve the tag if it exists
-            if len(current_tags) == 1:
-                tags.append(current_tags[0])
-            # Else we create it
-            else:
-                tag = Tag(name=tag_name,
-                          id=identifize(tag_name),
-                          description='')
-                db.session.add(tag)
-                db.session.commit()
-                tags.append(tag)
-        return tags
+    """Retrieve of the tags. If it doesn't exist, it is created
+    """
+    tags = []
+    for tag_name in tags_name:
+        query = db.session.query(Tag).filter_by(id=tag_name)
+        current_tags = query.all()
+        # We retrieve the tag if it exists
+        if len(current_tags) == 1:
+            tags.append(current_tags[0])
+        # Else we create it
+        else:
+            tag = Tag(name=tag_name,
+                      id=identifize(tag_name),
+                      description='')
+            db.session.add(tag)
+            db.session.commit()
+            tags.append(tag)
+    return tags
 
 # Index route
 
@@ -221,6 +231,35 @@ def get_category(category):
     # If there is no categories, send an error
     else:
         abort(404)
+
+
+@general_blueprint.route('/journal')
+@general_blueprint.route('/journal/<int:page>')
+def get_journal(page=1):
+    """ Return the last articles for the selectionned page in journal category
+    """
+
+    # Get the total number of pages
+    nb_pages = get_nb_pages(journal=True)
+
+    # Links onto the pages
+    pages = [{"number": i, "link": "/journal/" + str(i)}
+             for i in range(1, nb_pages + 1)]
+
+    articles = get_index_articles(nb_pages, journal=True)
+
+    # The data with wich fill in the page
+    data = {
+        "page_type": "home",
+        "pagination": {
+          "current_page": page,
+          "nb_page": nb_pages,
+          "pages": pages
+        },
+        "articles": articles
+    }
+    return render_template('general-template.html', data=json.dumps(data),
+                           type_js='home')
 
 
 @categories_blueprint.route('/<category_id>/json')
