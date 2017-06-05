@@ -237,6 +237,10 @@ def get_category(category):
 def get_journal(page=1):
     """ Return the last articles for the selectionned page in journal category
     """
+    # Retrieving the information about the journal category
+    query_cat = db.session.query(Category).filter_by(id='journal')
+    categories = query_cat.all()
+    category = categories[0]
 
     # Get the total number of pages
     nb_pages = get_nb_pages(journal=True)
@@ -249,7 +253,9 @@ def get_journal(page=1):
 
     # The data with wich fill in the page
     data = {
-        "page_type": "home",
+        "name": category.name,
+        "description": category.description,
+        "page_type": "journal",
         "pagination": {
           "current_page": page,
           "nb_page": nb_pages,
@@ -258,7 +264,7 @@ def get_journal(page=1):
         "articles": articles
     }
     return render_template('general-template.html', data=json.dumps(data),
-                           type_js='home')
+                           type_js='category')
 
 
 @categories_blueprint.route('/<category_id>/json')
