@@ -100,7 +100,7 @@ class Article(db.Model):
                         "author": self.author,
                         "description": self.description,
                         "id": self.id,
-                        "category": self.category_id,
+                        "category": self.category.name,
                         "tags": tags,
                         "difficulty": str(self.difficulty)}
         return article_dict

@@ -190,7 +190,13 @@ def test_get_category(client, test_db, truncate):
 
 
 def test_get_journal(client, test_db, truncate):
-    assert client.get('/journal').status_code == 200
+    # Creation of the category
+    data_to_post_create = {'name': 'journal',
+                           'description': 'test journal category'}
+    client.post('/categories/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+    assert client.get('/categories/journal').status_code == 200
 
 
 def test_get_json_category(client, test_db, truncate):
