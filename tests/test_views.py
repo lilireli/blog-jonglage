@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from io import BytesIO
 import json
 from time import sleep
 
@@ -31,7 +32,7 @@ def test_get_nb_pages(client, test_db, truncate):
     for i in range(25):
         data_to_post = {"name": "article {}".format(i),
                         "author": "a test author",
-                        "content": "a test content",
+                        "content": (BytesIO(b"a test content"), "test.txt"),
                         "category": "a-test-category",
                         "is_beginner": "True",
                         "tags": "tag1,tag2",
@@ -43,7 +44,8 @@ def test_get_nb_pages(client, test_db, truncate):
     for i in range(25, 30):
         data_to_post = {"name": "article {}".format(i),
                         "author": "a test journal author",
-                        "content": "a test journal content",
+                        "content": (BytesIO(b"a test journal content"),
+                                    "test_journal.txt"),
                         "category": "journal",
                         "is_beginner": "True",
                         "tags": "tag1,tag2",
@@ -78,7 +80,7 @@ def test_get_index_articles(client, test_db, truncate):
     for i in range(25):
         data_to_post = {"name": "article {}".format(i),
                         "author": "a test author",
-                        "content": "a test content",
+                        "content": (BytesIO(b"a test content"), "test.txt"),
                         "category": "a-test-category",
                         "is_beginner": "True",
                         "tags": "tag1,tag2",
@@ -90,7 +92,8 @@ def test_get_index_articles(client, test_db, truncate):
     for i in range(25, 30):
         data_to_post = {"name": "article {}".format(i),
                         "author": "a test journal author",
-                        "content": "a test journal content",
+                        "content": (BytesIO(b"a test journal content"),
+                                    "test_journal.txt"),
                         "category": "journal",
                         "is_beginner": "True",
                         "tags": "tag1,tag2",
@@ -282,7 +285,7 @@ def test_get_article(client, test_db, truncate):
     # Creation of the article
     data_to_post = {"name": "a test article",
                     "author": "a test author",
-                    "content": "a test content",
+                    "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "a-test-category",
                     "is_beginner": "True",
                     "tags": "tag1,tag2",
@@ -311,7 +314,7 @@ def test_create_article(client, test_db, truncate):
     # Tests
     data_to_post = {"name": "a test article",
                     "author": "a test author",
-                    "content": "a test content",
+                    "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "a-test-category",
                     "is_beginner": "True",
                     "tags": "tag1,tag2",
@@ -350,7 +353,7 @@ def test_get_json_article(client, test_db, truncate):
     # Creation of the article
     data_to_post_create = {"name": "an article for test json",
                            "author": "a test author",
-                           "content": "a test content",
+                           "content": (BytesIO(b"a test content"), "test.txt"),
                            "category": "a-test-category",
                            "is_beginner": "True",
                            "tags": "tag1,tag2",
@@ -386,7 +389,7 @@ def test_modify_article(client, test_db, truncate):
     # Creation of the article
     data_to_post_create = {"name": "a modify article",
                            "author": "a test author",
-                           "content": "a test content",
+                           "content": (BytesIO(b"a test content"), "test.txt"),
                            "category": "a-test-category",
                            "is_beginner": "True",
                            "tags": "tag1,tag2",
@@ -435,7 +438,7 @@ def test_delete_article(client, test_db):
     # Creation of the article
     data_to_post_create = {"name": "a delete article",
                            "author": "a test author",
-                           "content": "a test content",
+                           "content": (BytesIO(b"a test content"), "test.txt"),
                            "category": "a-test-category",
                            "is_beginner": "True",
                            "tags": "tag1,tag2",

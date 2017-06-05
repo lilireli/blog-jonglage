@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from io import BytesIO
+
 from .conftest import headers_authorization
 from blogapp.models import Category
 
@@ -15,7 +17,7 @@ def test_get_tags_and_beginner_links(client, test_db, truncate):
     # Article beginner
     data_to_post = {"name": "article beginner",
                     "author": "a test author",
-                    "content": "a test content",
+                    "content": (BytesIO(b'a test content'), 'test.txt'),
                     "category": "a-test-category",
                     "is_beginner": "True",
                     "tags": "tag1,tag3",
@@ -27,7 +29,7 @@ def test_get_tags_and_beginner_links(client, test_db, truncate):
     # Article no beginner
     data_to_post = {"name": "article no beginner",
                     "author": "a test author",
-                    "content": "a test content",
+                    "content": (BytesIO(b'a test content'), 'test.txt'),
                     "category": "a-test-category",
                     "is_beginner": "False",
                     "tags": "tag1,tag2",

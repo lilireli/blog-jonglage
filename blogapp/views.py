@@ -392,7 +392,7 @@ def create_article():
 
         article = Article(
             name=request.form['name'], author=request.form['author'],
-            content=request.form['content'].replace('  ', '\n'),
+            content=request.files['content'].read(),
             category_id=request.form['category'], creation_date=now,
             last_modification_date=now, is_beginner=is_beginner,
             description=request.form['description'], id=id_art, tags=tags,
@@ -439,8 +439,8 @@ def modify_article(article_id):
             article.author = (request.form['author']
                               if 'author' in request.form
                               else article.author)
-            article.content = (request.form['content'].replace('  ', '\n')
-                               if 'content' in request.form
+            article.content = (request.files['content'].read()
+                               if 'content' in request.files
                                else article.content)
             article.is_beginner = (convert_to_bool(
                                        request.form['is_beginner'])

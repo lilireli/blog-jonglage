@@ -149,7 +149,7 @@ paths:
           in: formData
           description: Content of the article.
           required: true
-          type: string
+          type: file
         - name: category
           in: formData
           description: Category of the article.
@@ -202,7 +202,7 @@ paths:
           in: formData
           description: Content of the article.
           required: false
-          type: string
+          type: file
         - name: category
           in: formData
           description: Category of the article.
