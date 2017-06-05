@@ -192,7 +192,6 @@ def initialize():
     db.session.commit()
     return Response('Database initialized')
 
-
 # Swagger
 
 
@@ -233,8 +232,8 @@ def get_category(category):
         abort(404)
 
 
-@general_blueprint.route('/journal')
-@general_blueprint.route('/journal/<int:page>')
+@categories_blueprint.route('/journal')
+@categories_blueprint.route('/journal/<int:page>')
 def get_journal(page=1):
     """ Return the last articles for the selectionned page in journal category
     """
