@@ -8,10 +8,10 @@ import locale
 from flask import (Flask, Response, render_template, request,
                    send_from_directory, Blueprint, current_app, abort)
 from flask_httpauth import HTTPBasicAuth
+import markdown
 
 from .models import Category, Article, Tag
 from .database import db
-from .convertMDToHTML import MDToHTMLParser
 
 tags_blueprint = Blueprint('tags', __name__)
 articles_blueprint = Blueprint('articles', __name__)
@@ -345,8 +345,7 @@ def get_article(article):
         tags = [{"name": t.name} for t in article.tags]
 
         # Use parser to transform markdown into HTML
-        parser = MDToHTMLParser()
-        content_html = parser.parse(article.content)
+        content_html = markdown.markdown(article.content)
 
         # The data with wich fill in the page
         data = {
