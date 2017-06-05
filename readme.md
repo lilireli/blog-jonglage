@@ -2,7 +2,7 @@ This project is the creation of a blog onto the juggling. It is in python 3.
 
 # Installation
 
-* Install virtualenv, libffi-dev, libmysqlclient-dev and python-dev
+* Install virtualenv, libffi-dev, libmysqlclient-dev and python3-dev
 * Create a virtual environment into the application: `virtualenv venv`
 * Activate the virtual environment: `source venv/bin/activate`
 * Install the necessaries libraries : `pip install -r requirements.txt`
@@ -16,7 +16,7 @@ TOKEN = "token_of_your_choice"
 * Create a file start.sh, which is used to launch the server. Into it insert:
 ```
 export APP_CONFIG_FILE=/absolute/path/to/your/config
-venv/bin/python blogapp/views.py
+venv/bin/python start.py
 ```
 The 'APP_CONFIG_FILE=/absolute/path/to/your/config' path is one of the file contained into the config folder (dev_pierrick.py by example).
 The second line is used to launch your executable. In dev, `venv/bin/python blogapp/views.py`is suitable.

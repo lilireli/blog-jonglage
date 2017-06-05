@@ -8,10 +8,10 @@ import locale
 from flask import (Flask, Response, render_template, request,
                    send_from_directory, Blueprint, current_app, abort)
 from flask_httpauth import HTTPBasicAuth
+import markdown
 
 from .models import Category, Article, Tag
 from .database import db
-from .convertMDToHTML import MDToHTMLParser
 
 tags_blueprint = Blueprint('tags', __name__)
 articles_blueprint = Blueprint('articles', __name__)
@@ -69,11 +69,16 @@ def verify_password(username, password):
 # Utils
 
 
-def get_index_articles(page):
+def get_index_articles(page, journal=False):
     """Retrieving and formatting of the articles
     """
-    query_articles = (db.session.query(Article)
-                      .order_by(Article.creation_date.desc()))
+    if not journal:
+        query_articles = (db.session.query(Article)
+                          .order_by(Article.creation_date.desc()))
+    else:
+        query_articles = (db.session.query(Article)
+                          .filter_by(category_id='journal')
+                          .order_by(Article.creation_date.desc()))
     articles = [art.to_data(current_app.config['DATE_STRING_FORMAT']) for art
                 in query_articles[
                     (page - 1) * current_app.config['NB_ARTICLES_BY_PAGE']:
@@ -81,10 +86,15 @@ def get_index_articles(page):
     return articles
 
 
-def get_nb_pages():
+def get_nb_pages(journal=False):
     # The total number of pages
-    nb_pages = ((db.session.query(Article).count() - 1)
-                // current_app.config['NB_ARTICLES_BY_PAGE']) + 1
+    if not journal:
+        nb_pages = ((db.session.query(Article).count() - 1)
+                    // current_app.config['NB_ARTICLES_BY_PAGE']) + 1
+    else:
+        nb_pages = ((db.session.query(Article).filter_by(category_id='journal')
+                     .count() - 1)
+                    // current_app.config['NB_ARTICLES_BY_PAGE']) + 1
     # Even if there is no articles, we must have one page
     nb_pages = 1 if nb_pages == 0 else nb_pages
     return nb_pages
@@ -110,24 +120,24 @@ def identifize(name):
 
 
 def get_or_create_tag(tags_name):
-        """Retrieve of the tags. If it doesn't exist, it is created
-        """
-        tags = []
-        for tag_name in tags_name:
-            query = db.session.query(Tag).filter_by(id=tag_name)
-            current_tags = query.all()
-            # We retrieve the tag if it exists
-            if len(current_tags) == 1:
-                tags.append(current_tags[0])
-            # Else we create it
-            else:
-                tag = Tag(name=tag_name,
-                          id=identifize(tag_name),
-                          description='')
-                db.session.add(tag)
-                db.session.commit()
-                tags.append(tag)
-        return tags
+    """Retrieve of the tags. If it doesn't exist, it is created
+    """
+    tags = []
+    for tag_name in tags_name:
+        query = db.session.query(Tag).filter_by(id=tag_name)
+        current_tags = query.all()
+        # We retrieve the tag if it exists
+        if len(current_tags) == 1:
+            tags.append(current_tags[0])
+        # Else we create it
+        else:
+            tag = Tag(name=tag_name,
+                      id=identifize(tag_name),
+                      description='')
+            db.session.add(tag)
+            db.session.commit()
+            tags.append(tag)
+    return tags
 
 # Index route
 
@@ -223,6 +233,35 @@ def get_category(category):
         abort(404)
 
 
+@general_blueprint.route('/journal')
+@general_blueprint.route('/journal/<int:page>')
+def get_journal(page=1):
+    """ Return the last articles for the selectionned page in journal category
+    """
+
+    # Get the total number of pages
+    nb_pages = get_nb_pages(journal=True)
+
+    # Links onto the pages
+    pages = [{"number": i, "link": "/journal/" + str(i)}
+             for i in range(1, nb_pages + 1)]
+
+    articles = get_index_articles(nb_pages, journal=True)
+
+    # The data with wich fill in the page
+    data = {
+        "page_type": "home",
+        "pagination": {
+          "current_page": page,
+          "nb_page": nb_pages,
+          "pages": pages
+        },
+        "articles": articles
+    }
+    return render_template('general-template.html', data=json.dumps(data),
+                           type_js='home')
+
+
 @categories_blueprint.route('/<category_id>/json')
 @auth.login_required
 def get_json_category(category_id):
@@ -306,8 +345,7 @@ def get_article(article):
         tags = [{"name": t.name} for t in article.tags]
 
         # Use parser to transform markdown into HTML
-        parser = MDToHTMLParser()
-        content_html = parser.parse(article.content)
+        content_html = markdown.markdown(article.content)
 
         # The data with wich fill in the page
         data = {
@@ -353,7 +391,7 @@ def create_article():
 
         article = Article(
             name=request.form['name'], author=request.form['author'],
-            content=request.form['content'].replace('  ', '\n'),
+            content=request.files['content'].read(),
             category_id=request.form['category'], creation_date=now,
             last_modification_date=now, is_beginner=is_beginner,
             description=request.form['description'], id=id_art, tags=tags,
@@ -400,8 +438,8 @@ def modify_article(article_id):
             article.author = (request.form['author']
                               if 'author' in request.form
                               else article.author)
-            article.content = (request.form['content'].replace('  ', '\n')
-                               if 'content' in request.form
+            article.content = (request.files['content'].read()
+                               if 'content' in request.files
                                else article.content)
             article.is_beginner = (convert_to_bool(
                                        request.form['is_beginner'])
