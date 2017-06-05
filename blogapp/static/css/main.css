@@ -35,6 +35,10 @@ footer .about {
   text-decoration: none;
 }
 
+img {
+  max-width: 100%;
+}
+
 .uppercase {
   text-transform: uppercase;
 }
