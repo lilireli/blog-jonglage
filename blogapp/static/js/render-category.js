@@ -264,7 +264,7 @@ var CategoryDiary = React.createClass({
 var Category = React.createClass({
   render: function() {
     let contents;
-    if (this.props.data.page_type == "todojournal") {
+    if (this.props.data.page_type == "journal") {
       contents = <CategoryDiary data={data} />
     } else {
       contents = <CategoryTackle data={data} />
