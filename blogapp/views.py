@@ -4,10 +4,12 @@ import json
 import datetime
 import unicodedata
 import locale
+import os
 
 from flask import (Flask, Response, render_template, request,
                    send_from_directory, Blueprint, current_app, abort)
 from flask_httpauth import HTTPBasicAuth
+from werkzeug.utils import secure_filename
 import markdown
 
 from .models import Category, Article, Tag
@@ -191,6 +193,22 @@ def initialize():
 
     db.session.commit()
     return Response('Database initialized')
+
+
+@general_blueprint.route('/upload/<type>', methods=['POST'])
+@auth.login_required
+def upload_file(type):
+    """ Upload a static file
+    """
+    if request.method == 'POST':
+        upload_folder = os.path.join(os.getcwd(), 'blogapp/static')
+        if not os.path.exists(os.path.join(upload_folder, type)):
+            os.mkdir(os.path.join(upload_folder, type))
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(upload_folder, type, filename))
+    return Response('File uploaded')
 
 # Swagger
 

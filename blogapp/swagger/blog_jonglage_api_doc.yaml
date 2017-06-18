@@ -30,6 +30,23 @@ paths:
       tags:
         - Initialization
 
+  /upload/{type}:
+    post:
+      summary: Upload a static file
+      parameters:
+        - name: file
+          in: formData
+          description: File to upload
+          required: true
+          type: file
+        - name: type
+          in: path
+          description: The type of file to upload
+          required: true
+          type: string
+      tags:
+        - Upload
+
   /categories/{id}:
     get:
       summary: HTML for each category
