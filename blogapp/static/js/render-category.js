@@ -1,4 +1,4 @@
-var ArticleSmall = React.createClass({
+var ArticleSmallWrapping = React.createClass({
   handleClick: function() {
     window.location = "/articles/" + this.props.data.id;
   },
@@ -14,11 +14,11 @@ var ArticleSmall = React.createClass({
   }
 });
 
-var ArticleSmallList = React.createClass({
+var ArticleSmallWrappingList = React.createClass({
   render: function() {
     var articleNodes = this.props.data.map(function(article) {
       return (
-        <ArticleSmall data={article} key={article.id} />
+        <ArticleSmallWrapping data={article} key={article.id} />
       );
     });
     return (
@@ -29,7 +29,7 @@ var ArticleSmallList = React.createClass({
   }
 });
 
-var Tag = React.createClass({
+var TagWrapping = React.createClass({
   handleClick: function() {
     /* Open and close the accordion */
     var x = document.getElementById(this.props.data.name);
@@ -42,23 +42,23 @@ var Tag = React.createClass({
   render: function() {
     return (
       <div>
-        <button onClick={this.handleClick} className="w3-btn-block w3-left-align">
+        <button onClick={this.handleClick} className="w3-btn-block w3-left-align capitalize">
          {this.props.data.name}
         </button>
         <div id={this.props.data.name} className="w3-accordion-content w3-container w3-white w3-padding-bottom">
           <p>{this.props.data.description}</p>
-          <ArticleSmallList data={this.props.data.articles} />
+          <ArticleSmallWrappingList data={this.props.data.articles} />
         </div>
       </div>
     )
   }
 });
 
-var TagList = React.createClass({
+var TagListWrapping = React.createClass({
   render: function() {
     var tagNodes = this.props.data.map(function(tag) {
       return (
-        <Tag data={tag} key={tag.name} />
+        <TagWrapping data={tag} key={tag.name} />
       );
     });
     return (
@@ -69,7 +69,7 @@ var TagList = React.createClass({
   }
 });
 
-var Links = React.createClass({
+var LinksBeginner = React.createClass({
   render: function() {
     var linkNodes = this.props.data.map(function(link) {
       return (
@@ -84,30 +84,19 @@ var Links = React.createClass({
   }
 });
 
-var CategoryTackle = React.createClass({
+var CategoryClassic = React.createClass({
   render: function() {
     return (
       <div>
-        <h1><b>{this.props.data.name}</b></h1>
-        <div className="w3-section w3-bottombar"></div>
-
-        <div className="w3-container w3-margin-bottom w3-threequarter">
-          <div dangerouslySetInnerHTML={{__html: this.props.data.description}}></div>
-        </div>
-
-        <div className="w3-quarter">
-            <img src={"/static/img/" + this.props.data.page_type + ".png"}></img>
-        </div>
-
         <div className="w3-container w3-margin-bottom">
           <h2>Pour bien commencer :</h2>
-          Quelques liens : <Links data={this.props.data.beginner_links} />
+          Quelques liens : <LinksBeginner data={this.props.data.beginner_links} />
         </div>
 
         <div className="w3-container">
           <h2>Voir toutes les figures par catégories :</h2>
           <div className="w3-accordion w3-light-grey">
-            <TagList data={this.props.data.tags} />
+            <TagListWrapping data={this.props.data.tags} />
           </div>
         </div>
       </div>
@@ -119,7 +108,7 @@ var Tags = React.createClass({
   render: function() {
     var tagNodes = this.props.data.map(function(tag) {
       return (
-        <span className="w3-dark-grey w3-round-xlarge w3-padding-small margin-small-right">{tag.name}</span>
+        <span className="w3-dark-grey w3-round-xlarge w3-padding-small lowercase margin-small-right">{tag.name}</span>
       );
     });
     return (
@@ -130,7 +119,7 @@ var Tags = React.createClass({
   }
 });
 
-var ArticleSmallLarge = React.createClass({
+var ArticleSmall = React.createClass({
   handleClick: function() {
     window.location = "/articles/" + this.props.data.id;
   },
@@ -151,11 +140,11 @@ var ArticleSmallLarge = React.createClass({
   }
 });
 
-var ArticleSmallLargeList = React.createClass({
+var ArticleSmallList = React.createClass({
   render: function() {
     var articleNodes = this.props.data.map(function(article) {
       return (
-        <ArticleSmallLarge data={article} key={article.id} />
+        <ArticleSmall data={article} key={article.id} />
       );
     });
     return (
@@ -243,14 +232,7 @@ var CategoryDiary = React.createClass({
   render: function() {
     return (
       <div>
-        <h1><b>{this.props.data.name}</b></h1>
-        <div className="w3-section w3-bottombar"></div>
-
-        <div className="w3-container w3-margin-bottom">
-          <div dangerouslySetInnerHTML={{__html: this.props.data.description}}></div>
-        </div>
-
-        <ArticleSmallLargeList data={this.props.data.articles} />
+        <ArticleSmallList data={this.props.data.articles} />
 
         {/* Pagination */}
         <div className="w3-center w3-padding-32">
@@ -267,12 +249,24 @@ var Category = React.createClass({
     if (this.props.data.page_type == "journal") {
       contents = <CategoryDiary data={data} />
     } else {
-      contents = <CategoryTackle data={data} />
+      contents = <CategoryClassic data={data} />
     }
 
     return (
       <div>
-        {contents}
+          <h1><b>{this.props.data.name}</b></h1>
+          <div className="w3-section w3-bottombar"></div>
+
+          <div className="w3-container w3-margin-bottom w3-threequarter">
+            <div dangerouslySetInnerHTML={{__html: this.props.data.description}}></div>
+          </div>
+
+          <div className="w3-quarter">
+              <img src={"/static/img/" + this.props.data.page_type + ".png"}></img>
+          </div>
+
+          <h2>Nos articles :</h2>
+          {contents}
       </div>
     )
   }
