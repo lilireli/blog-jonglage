@@ -20,7 +20,6 @@ articles_blueprint = Blueprint('articles', __name__)
 categories_blueprint = Blueprint('categories', __name__)
 general_blueprint = Blueprint('general', __name__)
 
-
 def create_app(test=False):
     app = Flask('__app__', template_folder='blogapp/templates',
                 static_folder='blogapp/static', instance_relative_config=True)
@@ -198,10 +197,13 @@ def initialize():
 @general_blueprint.route('/upload/<type>', methods=['POST'])
 @auth.login_required
 def upload_file(type):
-    """ Upload a static file
+    """ Upload a static file. The location is took from the configuration.
+    If we are in dev, this is the default static folder. Else, this will be
+    a folder served by another sever (nginx for example)
     """
     if request.method == 'POST':
-        upload_folder = os.path.join(os.getcwd(), 'blogapp/static')
+        upload_folder = os.path.join(os.getcwd(),
+                                     current_app.config['STATIC_FOLDER'])
         if not os.path.exists(os.path.join(upload_folder, type)):
             os.mkdir(os.path.join(upload_folder, type))
         file = request.files['file']
