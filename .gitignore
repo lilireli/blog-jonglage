@@ -7,3 +7,5 @@ start.sh
 .cache
 blogapp/static/lib/*
 blogapp/static/css/w3.css
+blogapp/static/img/*
+TODO.txt

@@ -5,12 +5,15 @@ import datetime
 import unicodedata
 import locale
 import os
+import shutil
+import zipfile
 
 from flask import (Flask, Response, render_template, request,
                    send_from_directory, Blueprint, current_app, abort)
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.utils import secure_filename
 import markdown
+import wget
 
 from .models import Category, Article, Tag
 from .database import db
@@ -183,15 +186,36 @@ def about():
 def initialize():
     """ Initialize the database (creation of table, fill in with categories...)
     """
+    # Creation of the database
     db.create_all()
     with open('blogapp/categories.json') as json_data:
         for category in json.load(json_data):
-            ed_category = Category(id=category['id'], name=category['name'],
-                                   description=category['description'])
-            db.session.add(ed_category)
+            query = db.session.query(Category).filter_by(id=category['id'])
+            if not query.all():
+                ed_category = Category(id=category['id'], name=category['name'],
+                                       description=category['description'])
+                db.session.add(ed_category)
 
     db.session.commit()
-    return Response('Database initialized')
+
+    # Copy of the useful static file for application
+    if current_app.config['STATIC_FOLDER'] != 'blogapp/static':
+        shutil.copytree('blogapp/static', current_app.config['STATIC_FOLDER'])
+
+    # Download of the external static file
+    with open('config/to_download.json') as json_download:
+        for folder, files in json.load(json_download).items():
+            download_folder = os.path.join(current_app.config['STATIC_FOLDER'],
+                                           folder)
+            for file, url in files.items():
+                if not os.path.isfile(os.path.join(
+                    current_app.config['STATIC_FOLDER'], folder, file)):
+                    wget.download(url, os.path.join(download_folder, file))
+                    if file.endswith('zip'):
+                        with zipfile.ZipFile(os.path.join(download_folder, file),
+                                             'r') as zip_ref:
+                            zip_ref.extractall(download_folder)
+    return Response('Database and static folder initialized')
 
 
 @general_blueprint.route('/upload/<type>', methods=['POST'])
