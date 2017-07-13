@@ -43,6 +43,14 @@ img {
   text-transform: uppercase;
 }
 
+.lowercase {
+    text-transform: lowercase;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
 .margin-small-right {
   margin-right: 8px;
 }

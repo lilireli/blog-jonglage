@@ -2,7 +2,7 @@ var Tags = React.createClass({
   render: function() {
     var tagNodes = this.props.data.map(function(tag) {
       return (
-        <span className="w3-dark-grey w3-round-xlarge w3-padding-small margin-small-right">{tag.name}</span>
+        <span className="w3-dark-grey w3-round-xlarge w3-padding-small lowercase margin-small-right">{tag.name}</span>
       );
     });
     return (
