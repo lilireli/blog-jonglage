@@ -1,0 +1,4 @@
+{"css": {"w3.css": "https://www.w3schools.com/w3css/3/w3.css"},
+ "lib": {"babel-core-browser.min.js": "https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js",
+         "react-15.3.0.zip": "https://github.com/facebook/react/raw/master/docs/downloads/react-15.3.0.zip",
+         "font-awesome-4.7.0.zip": "http://fontawesome.io/assets/font-awesome-4.7.0.zip"}}
