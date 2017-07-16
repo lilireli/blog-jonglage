@@ -218,7 +218,7 @@ def initialize():
     return Response('Database and static folder initialized')
 
 
-@general_blueprint.route('/upload/<type>', methods=['POST'])
+@general_blueprint.route('/upload/<path:type>', methods=['POST'])
 @auth.login_required
 def upload_file(type):
     """ Upload a static file. The location is took from the configuration.
