@@ -1,3 +1,3 @@
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://pierrick:@database-jonglage/jonglage'
 DEBUG = True
-STATIC_FOLDER = '/blogapp/static'
+STATIC_FOLDER = '/data'
