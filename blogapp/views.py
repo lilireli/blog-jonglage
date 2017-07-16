@@ -207,6 +207,9 @@ def initialize():
         for folder, files in json.load(json_download).items():
             download_folder = os.path.join(current_app.config['STATIC_FOLDER'],
                                            folder)
+            # Allow to includ the lib floder, which doesn't exists
+            if not os.path.exists(download_folder):
+                os.mkdir(download_folder)
             for file, url in files.items():
                 if not os.path.isfile(os.path.join(
                     current_app.config['STATIC_FOLDER'], folder, file)):
