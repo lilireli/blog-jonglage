@@ -279,6 +279,20 @@ def get_category(category):
         abort(404)
 
 
+@categories_blueprint.route('/')
+def get_categories():
+    """ Retrieve all categories which have existing articles
+    """
+    query_cat = db.session.query(Category)
+    categories = query_cat.all()
+
+    # If the query send anything, we have a non-empty list, which is True
+    categories_filtered = [
+        {'id': cat.id, 'name': cat.name} for cat in categories
+        if db.session.query(Article).filter_by(category_id=cat.id).all()]
+    return json.dumps(categories_filtered)
+
+
 @categories_blueprint.route('/journal')
 @categories_blueprint.route('/journal/<int:page>')
 def get_journal(page=1):
