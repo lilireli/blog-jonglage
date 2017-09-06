@@ -71,6 +71,7 @@ class Article(db.Model):
     last_modification_date = db.Column(db.DateTime)
     is_beginner = db.Column(db.Boolean)
     difficulty = db.Column(db.Integer)
+    image = db.Column(db.String(50), nullable=True)
     category_id = db.Column(db.String(50), db.ForeignKey('categories.id',
                                                          ondelete="CASCADE"))
 
@@ -87,7 +88,8 @@ class Article(db.Model):
                         "is_beginner": self.is_beginner,
                         "description": self.description,
                         "category_id": self.category_id, "tags": tags,
-                        "difficulty": str(self.difficulty)}
+                        "difficulty": str(self.difficulty),
+                        "image": self.image}
         return json.dumps(article_json)
 
     def to_data(self, date_format):
@@ -102,7 +104,8 @@ class Article(db.Model):
                         "id": self.id,
                         "category": self.category.name,
                         "tags": tags,
-                        "difficulty": str(self.difficulty)}
+                        "difficulty": str(self.difficulty),
+                        "image": self.image}
         return article_dict
 
 

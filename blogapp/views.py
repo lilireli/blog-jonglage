@@ -409,6 +409,7 @@ def get_article(article):
             "page_type": article.category.name,
             "content": content_html,
             "difficulty": article.difficulty,
+            "image": article.image,
             "creation_date": article.creation_date.strftime(
                 current_app.config['DATE_STRING_FORMAT']),
             "last_modification_date": (article.last_modification_date
@@ -447,7 +448,8 @@ def create_article():
             category_id=request.form['category'], creation_date=now,
             last_modification_date=now, is_beginner=is_beginner,
             description=request.form['description'], id=id_art, tags=tags,
-            difficulty=request.form['difficulty'])
+            difficulty=request.form['difficulty'],
+            image=request.form['image'] if 'image' in request.form else '')
         db.session.add(article)
         db.session.commit()
         return Response('Article saved')
@@ -500,10 +502,12 @@ def modify_article(article_id):
             article.category_id = (request.form['category_id']
                                    if 'category_id' in request.form
                                    else article.category_id)
-
             article.difficulty = (int(request.form['difficulty'])
                                   if 'difficulty' in request.form
                                   else article.difficulty)
+            article.image = (int(request.form['image'])
+                             if 'image' in request.form
+                             else article.image)
 
             # We have also to create the tags if they don't exist
             if 'tags' in request.form:

@@ -188,6 +188,11 @@ paths:
           description: The difficulty of the article
           required: true
           type: integer
+        - name: image
+          in: formData
+          description: The image of the article
+          required: false
+          type: string
       tags:
         - Articles
 
@@ -240,6 +245,11 @@ paths:
           description: The difficulty of the article
           required: false
           type: integer
+        - name: image
+          in: formData
+          description: The image of the article
+          required: false
+          type: string
       tags:
         - Articles
 
