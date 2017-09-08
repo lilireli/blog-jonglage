@@ -199,6 +199,39 @@ def test_get_journal(client, test_db, truncate):
     assert client.get('/categories/journal').status_code == 200
 
 
+def test_get_categories(client, test_db, truncate):
+
+    # Creation of the categories
+    data_to_post_create = {'name': 'a category non empty',
+                           'description': 'test category'}
+    client.post('/categories/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+    data_to_post_create = {'name': 'an empty category',
+                           'description': 'test category'}
+    client.post('/categories/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the article
+    data_to_post = {"name": "a test article",
+                    "author": "a test author",
+                    "content": (BytesIO(b"a test content"), "test.txt"),
+                    "category": "a-category-non-empty",
+                    "is_beginner": "True",
+                    "tags": "tag1,tag2",
+                    "description": "a test description",
+                    "difficulty": "5"}
+
+    client.post('/articles/create', data=data_to_post,
+                headers=headers_authorization)
+
+    response = client.get('/categories/')
+    assert response.status_code == 200
+    assert (json.loads(response.data.decode('utf-8'))
+            == [{'id': 'a-category-non-empty',
+                 'name': 'a category non empty'}])
+
 def test_get_json_category(client, test_db, truncate):
 
     # Creation of the category
