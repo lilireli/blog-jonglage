@@ -86,7 +86,7 @@
                 <div class="w3-quarter">
                     <p>
                         <a rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/fr/">
-                            <img alt="Licence Creative Commons" class="licence w3-display-right" src="https://i.creativecommons.org/l/by-nc/3.0/fr/88x31.png" />
+                            <img alt="Licence Creative Commons" class="licence w3-display-right w3-padding-large" src="https://i.creativecommons.org/l/by-nc/3.0/fr/88x31.png" />
                         </a>
                     </p>
                 </div>
@@ -164,7 +164,7 @@
 
     <template id='template-content-category'>
         <div>
-            <div>
+            <div class="w3-col" style="width:100%">
                 <h1><b>{{page.name}}</b></h1>
                 <div class="w3-section w3-bottombar"></div>
 
@@ -225,8 +225,7 @@
 <script>
     var data = $data|safe$
 </script>
-<script src="https://unpkg.com/vue"></script>
-<script src="https://cdn.jsdelivr.net/npm/vue-resource@1.3.4"></script>
+<script src="/static/lib/vue.js"></script>
 <script src="/static/lib/babel-core-browser.min.js"></script>
 <script src="/static/js/render-vue.js"></script>
 
