@@ -12,40 +12,222 @@
 
 <!-- Sidenav/menu -->
 <div id="nav-container">
-  <!-- Content will be filled by React -->
+    <div>
+        <nav class="w3-sidenav w3-collapse w3-white w3-animate-left w3-padding-top" id="mySidenav">
+            <div class="w3-container">
+                <a href="" v-on:click="closeMenu" class="w3-hide-large w3-right w3-jumbo w3-padding" title="close menu">
+                    <i class="fa fa-remove"></i>
+                </a>
+                <img src="/static/img/img_menu.JPG" class="w3-round"></img>
+                <h4 class="w3-padding-0"><b>JONGLAGE</b></h4>
+                <p class="w3-text-grey">Un blog pour explorer des millions de possibilités</p>
+            </div>
+
+            <!-- List of categories -->
+            <a href="/" class="w3-padding uppercase" v-bind:class="{'w3-text-teal': classActivated('home')}">home</a>
+            <a v-for="cat in nav_categories" v-bind:href="'/categories/'+cat.id"
+               class="w3-padding uppercase" v-bind:class="{'w3-text-teal': classActivated(cat.id)}">
+                {{cat.name}}
+            </a>
+
+        </nav>
+
+        <!-- Overlay effect when opening sidenav on small screens -->
+        <div class="w3-overlay w3-hide-large w3-animate-opacity" v-on:click="closeMenu" title="close side menu" id="myOverlay"></div>
+    </div>
 </div>
 
 <!-- !PAGE CONTENT! -->
 <div class="w3-main" style="margin-left:300px">
 
-  <!-- Header Menu for Mobile Devices-->
-  <div id="nav-container-mobile">
-    <!-- Content will be filled by React -->
-  </div>
+    <!-- Header Menu for Mobile Devices -->
+    <div id="nav-container-mobile">
+        <header class="w3-container">
+            <a href=""><img src="/static/img/img_menu.JPG" class="w3-circle w3-right w3-margin w3-hide-large w3-hover-opacity"></img></a>
+            <span class="w3-opennav w3-hide-large w3-xxlarge w3-hover-text-grey" v-on:click="openMenu"><i class="fa fa-bars"></i></span>
+        </header>
+    </div>
 
-  <!-- Content of article -->
-  <div id="content" class="w3-container">
-    <!-- Content will be filled by React -->
-  </div>
+    <!-- Content of page -->
+    <div id="content" class="w3-container">
+        <div v-if="page_type === 'home'">
+             <content-page-home :page="page"></content-page-home>
+        </div>
+        <div v-if="page_type === 'category'">
+             <content-page-category :page="page"></content-page-category>
+        </div>
+        <div v-if="page_type === 'article'">
+             <content-page-article :page="page"></content-page-article>
+        </div>
+        <div v-if="page_type === 'about'">
+             <content-page-about :page="page"></content-page-about>
+        </div>
+    </div>
 
-  <div class="w3-padding-32"></div>
+    <div class="w3-padding-32"></div>
 
-  <!-- Footer -->
-  <div id="footer">
-    <!-- Content will be filled by React -->
-  </div>
+    <!-- Footer -->
+    <div id="footer">
+        <footer class="w3-container w3-padding-32 w3-white">
+            <div class="w3-row-padding">
+                <div class="w3-quarter">
+                    <p><a class="about" href="/about">ABOUT</a></p>
+                    <p>Nous contacter : jonglage<at>bwatt.eu</p>
+                </div>
 
-<!-- End page content -->
+                <div class="w3-half w3-center">
+                    <p>
+                        Powered by <a href="http://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a>, <a href="https://facebook.github.io/react/" target="_blank">React</a>, <a href="http://flask.pocoo.org/" target="_blank">Flask</a> and <a href="https://mariadb.org/" target="_blank">MariaDB</a>
+                        <br/>
+                        Engineered with <a href="https://github.com/lilireli/blog-jonglage" target="_blank">a Github project</a>
+                    </p>
+                </div>
+
+                <div class="w3-quarter">
+                    <p>
+                        <a rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/fr/">
+                            <img alt="Licence Creative Commons" class="licence w3-display-right w3-padding-large" src="https://i.creativecommons.org/l/by-nc/3.0/fr/88x31.png" />
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- End page content -->
+
+    <!-- Templates -->
+    <template id='template-list-article-by-timeline'>
+        <div>
+            <div class="w3-container">
+                <div v-for="article in page.articles" class="w3-container w3-margin-bottom w3-white article-small" v-on:click="handleClickArticle(article.id)">
+                    <h2>{{article.name}}</h2>
+                    <p class="w3-text-grey">
+                        <span class="margin-small-right">Le {{article.creation_date}} sous</span>
+                        <span class="w3-teal w3-padding-small uppercase margin-small-right">{{article.category}}</span>
+                        <span v-for="tag in article.tags" class="w3-dark-grey w3-round-xlarge w3-padding-small lowercase margin-small-right">{{tag.name}}</span>
+                    </p>
+                    <p>{{article.description}}</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="w3-center w3-padding-32">
+                <ul class="w3-pagination">
+                    <li v-for="i in page.pagination.nb_page" v-html="paginate(i, page.pagination.current_page, page.pagination.nb_page)"></li>
+                </ul>
+            </div>
+        </div>
+    </template>
+
+    <template id='template-list-article-by-tag'>
+        <div>
+            <div class="w3-container w3-margin-bottom">
+                <h3>Pour bien commencer :</h2>
+                Quelques liens :
+                <a v-for="link in page.beginner_links" v-bind:href="link.link" class="margin-small-right">{{link.name}}</a>
+            </div>
+
+            <div class="w3-container">
+                <h2>Voir toutes les figures par catégories :</h2>
+                <div class="w3-accordion w3-light-grey">
+                    <div>
+                        <div v-for="tag in page.tags">
+                            <button v-on:click="handleClickTag(tag.name)" class="w3-btn-block w3-left-align capitalize">
+                                {{tag.name}}
+                            </button>
+                            <div :id="tag.name" class="w3-accordion-content w3-container w3-white w3-padding-bottom">
+                                <p>{{tag.name}}</p>
+                                <div>
+                                    <div v-for="article in tag.articles" class="w3-container w3-col s3 w3-padding">
+                                        <div class="w3-container w3-pale-blue article-small" v-on:click="handleClickArticle(article.id)">
+                                            <h2>{{article.name}}</h2>
+                                            <p>{{article.description}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id='template-content-home'>
+        <div>
+            <h1><b>Nos derniers articles</b></h1>
+            <div class="w3-section w3-bottombar"></div>
+            <list-article-by-timeline :page="page"></list-article-by-timeline>
+        </div>
+    </template>
+
+    <template id='template-content-category'>
+        <div>
+            <div class="w3-col" style="width:100%">
+                <h1><b>{{page.name}}</b></h1>
+                <div class="w3-section w3-bottombar"></div>
+
+                <div class="w3-container w3-margin-bottom w3-threequarter">
+                    <div v-html="page.description"></div>
+                </div>
+
+                <div class="w3-quarter">
+                    <img :src="'/static/img/'+page.page_category+'.png'"></img>
+                </div>
+            </div>
+
+            <div>
+                <h2>Nos articles :</h2>
+                <div v-if="page.page_category === 'journal'">
+                    <list-article-by-timeline :page="page"></list-article-by-timeline>
+                </div>
+                <div v-else>
+                    <list-article-by-tag :page="page"></list-article-by-tag>
+                </div>
+
+            </div>
+        </div>
+    </template>
+
+    <template id='template-content-article'>
+        <div>
+            <p>
+                <span class="w3-teal w3-padding-small uppercase margin-small-right">{{page.category}}</span>
+                <span v-for="tag in page.tags" class="w3-dark-grey w3-round-xlarge w3-padding-small lowercase margin-small-right">
+                    {{tag.name}}
+                </span>
+            </p>
+            <h1><b>{{page.name}}</b></h1>
+            <p class="w3-text-grey">Par <b>{{page.author}}</b> {{getDate(page.creation_date, page.last_modification_date)}}</p>
+            <div class="w3-section w3-bottombar"></div>
+
+            <div class="page" v-html="page.content"></div>
+        </div>
+    </template>
+
+    <template id='template-content-about'>
+        <div>
+            <h1><b>About</b></h1>
+            <div class="w3-section w3-bottombar"></div>
+            <h2>Bwatt</h2>
+            <p>
+                Jongleur depuis une demi-douzaine d'années, j'ai essayé pas mal de disciplines (balles, baton du diable, bollas) avant de me focaliser sur quelques- unes qui m'ont le plus plu : le staff (contact), les massues, et, depuis peu, le chapeau.
+            </p>
+            <h2>Suze</h2>
+            <p>
+                Jongleuse à mes heures perdues, je suis parfois acharnée, et parfois très faignante, ce qui me permet d'essayer aussi bien les balles et le diabolo que la balle contact. Parfois même je m'essaye à d'aures choses, lorsque le besoin de changement s'en fait ressentir (et oui j'ai essayé le kendama à ce propos, très prometteur !)
+            </p>
+        </div>
+    </template>
 </div>
 
 <script>
-	var data = {{data|safe}}
+    var data = $data|safe$
 </script>
-<script src="/static/lib/react-15.3.0/build/react.js"></script>
-<script src="/static/lib/react-15.3.0/build/react-dom.js"></script>
+<script src="/static/lib/vue.js"></script>
 <script src="/static/lib/babel-core-browser.min.js"></script>
-<script type="text/babel" src="/static/js/render-skeleton.js"></script>
-<script type="text/babel" src="/static/js/render-{{type_js}}.js"></script>
+<script src="/static/js/render-vue.js"></script>
 
 </body>
 </html>
