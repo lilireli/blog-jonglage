@@ -358,7 +358,8 @@ def test_create_article(client, test_db, truncate):
                     "is_beginner": "True",
                     "tags": "tag1,tag2",
                     "description": "a test description",
-                    "difficulty": "5"}
+                    "difficulty": "5",
+                    "image": "a test image"}
     assert client.post("/articles/create",
                        headers=headers_authorization,
                        data=data_to_post).status_code == 200
@@ -375,6 +376,7 @@ def test_create_article(client, test_db, truncate):
     assert article.is_beginner
     assert article.description == 'a test description'
     assert article.difficulty == 5
+    assert article.image == 'a test image'
     assert len(article.tags) == 2
     assert article.tags[0].id == 'tag1'
     assert article.tags[1].id == 'tag2'
@@ -397,7 +399,8 @@ def test_get_json_article(client, test_db, truncate):
                            "is_beginner": "True",
                            "tags": "tag1,tag2",
                            "description": "a test description",
-                           "difficulty": "5"}
+                           "difficulty": "5",
+                           "image": "a test image"}
     client.post('/articles/create', headers=headers_authorization,
                 data=data_to_post_create)
 
@@ -414,7 +417,8 @@ def test_get_json_article(client, test_db, truncate):
         'is_beginner': True,
         'tags': 'tag1,tag2',
         'description': 'a test description',
-        'difficulty': '5'}
+        'difficulty': '5',
+        'image': 'a test image'}
 
 
 def test_modify_article(client, test_db, truncate):
@@ -460,6 +464,7 @@ def test_modify_article(client, test_db, truncate):
     assert article.is_beginner
     assert article.description == 'a test description'
     assert article.difficulty == 5
+    assert article.image == ''
     assert len(article.tags) == 2
     assert article.tags[0].id == 'tag1'
     assert article.tags[1].id == 'tag3'
