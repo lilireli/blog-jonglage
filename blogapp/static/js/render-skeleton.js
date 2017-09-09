@@ -1,98 +1,97 @@
-var Menu = React.createClass({
-    close: function() {
-        document.getElementById("mySidenav").style.display = "none";
-        document.getElementById("myOverlay").style.display = "none";
+var menu = new Vue({
+    el: "#nav-container",
+    data: {
+        categories: [
+            { name: "Balles", id: "balles" },
+            { name: "Staff", id: "staff" }
+        ],
+        page_type: "balles"
     },
-    render: function() {
-        var typePage = this.props.data.page_type;
-        return (
-          <div>
-            <nav className="w3-sidenav w3-collapse w3-white w3-animate-left w3-padding-top" id="mySidenav">
-              <div className="w3-container">
-                <a href="" onClick={this.close} className="w3-hide-large w3-right w3-jumbo w3-padding" title="close menu">
-                  <i className="fa fa-remove"></i>
-                </a>
-                <img src="/static/img/img_menu.JPG" className="w3-round"></img>
-                <h4 className="w3-padding-0"><b>JONGLAGE</b></h4>
-                <p className="w3-text-grey">Un blog pour explorer des millions de possibilités</p>
-              </div>
-              <a href="/"                            className={"w3-padding " + ((typePage == 'home') ? "w3-text-teal" : "")} >HOME</a>
-              <a href="/categories/journal"          className={"w3-padding " + ((typePage == 'journal') ? "w3-text-teal" : "")}>JOURNAL DE JONGLEUR</a>
-              <a href="/categories/acrobatie"        className={"w3-padding " + ((typePage == 'acrobatie') ? "w3-text-teal" : "")}>ACROBATIE</a>
-              <a href="/categories/balles"           className={"w3-padding " + ((typePage == 'balles') ? "w3-text-teal" : "")}>BALLES</a>
-              <a href="/categories/balle-contact"    className={"w3-padding " + ((typePage == 'balle-contact') ? "w3-text-teal" : "")}>BALLE CONTACT</a>
-              <a href="/categories/baton-du-diable"  className={"w3-padding " + ((typePage == 'baton-du-diable') ? "w3-text-teal" : "")}>BATON DU DIABLE</a>
-              <a href="/categories/bolas"            className={"w3-padding " + ((typePage == 'bolas') ? "w3-text-teal" : "")}>BOLAS</a>
-              <a href="/categories/chapeau"          className={"w3-padding " + ((typePage == 'chapeau') ? "w3-text-teal" : "")}>CHAPEAU</a>
-              <a href="/categories/diabolo"          className={"w3-padding " + ((typePage == 'diabolo') ? "w3-text-teal" : "")}>DIABOLO</a>
-              <a href="/categories/massue"           className={"w3-padding " + ((typePage == 'massue') ? "w3-text-teal" : "")}>MASSUE</a>
-              <a href="/categories/staff"            className={"w3-padding " + ((typePage == 'staff') ? "w3-text-teal" : "")}>STAFF</a>
-            </nav>
-
-            { /* Overlay effect when opening sidenav on small screens */ }
-            <div className="w3-overlay w3-hide-large w3-animate-opacity" onClick={this.close} title="close side menu" id="myOverlay"></div>
-          </div>
-        );
+    methods: {
+        classActivated: function(catPage, catNav) {
+            return catPage == catNav;
+        },
+        closeMenu: function() {
+            document.getElementById("mySidenav").style.display = "none";
+            document.getElementById("myOverlay").style.display = "none";
+        }
     }
 });
 
-var MenuMobile = React.createClass({
-    open: function() {
-        document.getElementById("mySidenav").style.display = "block";
-        document.getElementById("myOverlay").style.display = "block";
-    },
-    render: function() {
-        return (
-          <header className="w3-container">
-            <a href=""><img src="/static/img/img_menu.JPG" className="w3-circle w3-right w3-margin w3-hide-large w3-hover-opacity"></img></a>
-            <span className="w3-opennav w3-hide-large w3-xxlarge w3-hover-text-grey" onClick={this.open}><i className="fa fa-bars"></i></span>
-          </header>
-        )
+var menuMobile = new Vue({
+    el: '#nav-container-mobile',
+    methods: {
+        openMenu: function () {
+            document.getElementById("mySidenav").style.display = "block";
+            document.getElementById("myOverlay").style.display = "block";
+        }
     }
 });
 
-var Footer = React.createClass({
-    render: function() {
-        return (
-          <footer className="w3-container w3-padding-32 w3-white">
-          <div className="w3-row-padding">
-            <div className="w3-quarter">
-              <p><a className="about" href="/about">ABOUT</a></p>
-              <p>Nous contacter : {'jonglage<at>bwatt.eu'}</p>
-            </div>
-
-            <div className="w3-half w3-center">
-              <p>
-                Powered by <a href="http://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a>, <a href="https://facebook.github.io/react/" target="_blank">React</a>, <a href="http://flask.pocoo.org/" target="_blank">Flask</a> and <a href="https://mariadb.org/" target="_blank">MariaDB</a>
-                <br/>
-                Engineered with <a href="https://github.com/lilireli/blog-jonglage" target="_blank">a Github project</a>
-              </p>
-            </div>
-
-            <div className="w3-quarter">
-              <p>
-                <a rel="license" href="http://creativecommons.org/licenses/by-nc/3.0/fr/">
-                  <img alt="Licence Creative Commons" className="licence w3-display-right" src="https://i.creativecommons.org/l/by-nc/3.0/fr/88x31.png" />
-                </a>
-              </p>
-            </div>
-          </div>
-          </footer>
-        )
+var articleListByTag = Vue.component('list-article-by-tag', {
+    template: '#template-list-article-by-tag',
+    props: ['page'],
+    methods: {
+        handleClickTag: function(tag) {
+            /* Open and close the accordion */
+            var x = document.getElementById(tag);
+            if (x.className.indexOf("w3-show") == -1) {
+                x.className += " w3-show";
+            } else {
+                x.className = x.className.replace(" w3-show", "");
+            }
+        },
+        handleClickArticle: function(article) {
+            window.location = "/articles/" + article;
+        }
     }
 })
 
-ReactDOM.render(
-  <Menu data={data} />,
-  document.getElementById('nav-container')
-);
+var articleListByTimeline = Vue.component('list-article-by-timeline', {
+    template: '#template-list-article-by-timeline',
+    props: ['page'],
+    methods: {
+        handleClickArticle: function(article) {
+            window.location = "/articles/" + article;
+        },
+        paginate: function(iteratedPage, currentPage, maxPage){
+            var className = "w3-hover-black";
+            if (iteratedPage == currentPage){ className = "w3-black"; }
 
-ReactDOM.render(
-  <MenuMobile />,
-  document.getElementById('nav-container-mobile')
-);
+            var link = '<a class='+className+' href=/page/'+iteratedPage+'>'+iteratedPage+'</a>';
 
-ReactDOM.render(
-  <Footer />,
-  document.getElementById('footer')
-)
+            /* Do not render all pages number but Page 1 and last page are always rendered */
+            if (iteratedPage != 1 && iteratedPage != maxPage){
+                /* Small page numbers */
+                if (currentPage > 5){
+                    var linkSmaller = '<a class="w3-hover-black" href=/page/'+iteratedPage+'>«</a>';
+
+                    if (currentPage > maxPage - 3){
+                        if (iteratedPage == maxPage - 5){ link = linkSmaller; /* Insert << */ }
+                        else if (iteratedPage < maxPage - 5 ){ link = ''; /* Number is too small */ }
+                    }
+                    else {
+                        if (iteratedPage == currentPage - 3){ link = linkSmaller; /* Insert << */ }
+                        else if (iteratedPage < currentPage - 3 ){ link = ''; /* Number is too small */ }
+                    }
+                }
+
+                /* Big page numbers */
+                if (currentPage < maxPage - 4){
+                    var linkBigger = '<a class="w3-hover-black" href=/page/'+iteratedPage+'>»</a>';
+
+                    if (currentPage < 4){
+                        if (iteratedPage == 6){ link = linkBigger; /* Insert >> */ }
+                        else if (iteratedPage > 6){ link = ''; /* Number is too big */ }
+                    }
+                    else {
+                        if (iteratedPage == currentPage + 3){ link = linkBigger; /* Insert >> */ }
+                        else if (iteratedPage > currentPage + 3){ link = ''; /* Number is too big */ }
+                    }
+                }
+            }
+
+            return link;
+        }
+    }
+})

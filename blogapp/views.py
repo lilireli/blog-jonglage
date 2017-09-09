@@ -23,8 +23,20 @@ articles_blueprint = Blueprint('articles', __name__)
 categories_blueprint = Blueprint('categories', __name__)
 general_blueprint = Blueprint('general', __name__)
 
+# Use $abc$ for templates instead of {{abc}} because of conflict with vue.js
+class CustomFlask(Flask):
+    jinja_options = Flask.jinja_options.copy()
+    jinja_options.update(dict(
+        block_start_string='$$',
+        block_end_string='$$',
+        variable_start_string='$',
+        variable_end_string='$',
+        comment_start_string='$#',
+        comment_end_string='#$',
+    ))
+
 def create_app(test=False):
-    app = Flask('__app__', template_folder='blogapp/templates',
+    app = CustomFlask('__app__', template_folder='blogapp/templates',
                 static_folder='blogapp/static', instance_relative_config=True)
 
     # Load the default configuration
