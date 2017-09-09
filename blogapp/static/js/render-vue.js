@@ -1,20 +1,24 @@
 var menu = new Vue({
     el: "#nav-container",
     data: {
-        categories: [
-            { name: "Balles", id: "balles" },
-            { name: "Staff", id: "staff" }
-        ],
-        page_type: "balles"
+        nav_categories: [],
+        page_category: ""
     },
     methods: {
-        classActivated: function(catPage, catNav) {
-            return catPage == catNav;
+        fetchData: function() {
+            this.nav_categories = data.nav_categories;
+            this.page_category = data.page_category;
+        },
+        classActivated: function(catNav) {
+            return this.page_category == catNav;
         },
         closeMenu: function() {
             document.getElementById("mySidenav").style.display = "none";
             document.getElementById("myOverlay").style.display = "none";
         }
+    },
+    mounted: function(){
+        this.fetchData();
     }
 });
 
@@ -95,3 +99,52 @@ var articleListByTimeline = Vue.component('list-article-by-timeline', {
         }
     }
 })
+
+var homeComponent = Vue.component('content-page-home', {
+    template: '#template-content-home',
+    props: ['page']
+});
+
+var categoryComponent = Vue.component('content-page-category', {
+    template: '#template-content-category',
+    props: ['page']
+});
+
+var articleComponent = Vue.component('content-page-article', {
+    template: '#template-content-article',
+    props: ['page'],
+    methods: {
+        getDate: function(creationDate, modificationDate) {
+            dateString = "le " + creationDate;
+            if (creationDate != modificationDate)
+            {
+                dateString += " (modifié le " +  modificationDate + ")";
+            }
+
+            return dateString;
+        }
+    }
+});
+
+var aboutComponent = Vue.component('content-page-about', {
+    template: '#template-content-about',
+    props: ['page']
+});
+
+// create a new Vue instance and mount it to our div element above with the id of app
+var content = new Vue({
+    el: '#content',
+    data: {
+        page_type: "home",
+        page: {}
+    },
+    methods: {
+        fetchData: function() {
+            this.page = data;
+            this.page_type = data.page_type;
+        }
+    },
+    mounted: function(){
+        this.fetchData();
+    }
+});

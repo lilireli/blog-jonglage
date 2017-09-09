@@ -155,6 +155,19 @@ def get_or_create_tag(tags_name):
             tags.append(tag)
     return tags
 
+
+def get_categories():
+    """ Retrieve all categories which have existing articles
+    """
+    query_cat = db.session.query(Category)
+    categories = query_cat.all()
+
+    # If the query send anything, we have a non-empty list, which is True
+    categories_filtered = [
+        {'id': cat.id, 'name': cat.name} for cat in categories
+        if db.session.query(Article).filter_by(category_id=cat.id).all()]
+    return categories_filtered
+
 # Index route
 
 
@@ -167,30 +180,31 @@ def index(page=1):
     # Get the total number of pages
     nb_pages = get_nb_pages()
 
-    # Links onto the pages
-    pages = [{"number": i, "link": "/page/" + str(i)}
-             for i in range(1, nb_pages + 1)]
-
     articles = get_index_articles(nb_pages)
 
     # The data with wich fill in the page
     data = {
         "page_type": "home",
+        "page_category": "home",
+        "nav_categories": get_categories(),
         "pagination": {
           "current_page": page,
-          "nb_page": nb_pages,
-          "pages": pages
+          "nb_page": nb_pages
         },
         "articles": articles
     }
-    return render_template('general-template.html', data=json.dumps(data),
-                           type_js='home')
+    return render_template('general-template.html', data=json.dumps(data))
 
 
 @general_blueprint.route('/about')
 def about():
-    return render_template('general-template.html', data=json.dumps({}),
-                           type_js='about')
+    # The data with wich fill in the page
+    data = {
+        "page_type": "about",
+        "nav_categories": get_categories()
+    }
+
+    return render_template('general-template.html', data=json.dumps(data))
 
 
 @general_blueprint.route('/initialize')
@@ -278,31 +292,18 @@ def get_category(category):
 
         # The data with wich fill in the page
         data = {
-            "page_type": category.id,
+            "page_type": "category",
+            "page_category": category.id,
+            "nav_categories": get_categories(),
             "name": category.name,
             "description": category.description,
             "beginner_links": beginner_links,
             "tags": tags
           }
-        return render_template('general-template.html', data=json.dumps(data),
-                               type_js='category')
+        return render_template('general-template.html', data=json.dumps(data))
     # If there is no categories, send an error
     else:
         abort(404)
-
-
-@categories_blueprint.route('/')
-def get_categories():
-    """ Retrieve all categories which have existing articles
-    """
-    query_cat = db.session.query(Category)
-    categories = query_cat.all()
-
-    # If the query send anything, we have a non-empty list, which is True
-    categories_filtered = [
-        {'id': cat.id, 'name': cat.name} for cat in categories
-        if db.session.query(Article).filter_by(category_id=cat.id).all()]
-    return json.dumps(categories_filtered)
 
 
 @categories_blueprint.route('/journal')
@@ -318,26 +319,22 @@ def get_journal(page=1):
     # Get the total number of pages
     nb_pages = get_nb_pages(journal=True)
 
-    # Links onto the pages
-    pages = [{"number": i, "link": "/journal/" + str(i)}
-             for i in range(1, nb_pages + 1)]
-
     articles = get_index_articles(nb_pages, journal=True)
 
     # The data with wich fill in the page
     data = {
         "name": category.name,
         "description": category.description,
-        "page_type": "journal",
+        "page_type": "category",
+        "page_category": "journal",
+        "nav_categories": get_categories(),
         "pagination": {
           "current_page": page,
-          "nb_page": nb_pages,
-          "pages": pages
+          "nb_page": nb_pages
         },
         "articles": articles
     }
-    return render_template('general-template.html', data=json.dumps(data),
-                           type_js='category')
+    return render_template('general-template.html', data=json.dumps(data))
 
 
 @categories_blueprint.route('/<category_id>/json')
@@ -432,7 +429,9 @@ def get_article(article):
             "description": article.description,
             "url": article.id,
             "category": article.category.name,
-            "page_type": article.category.name,
+            "page_type": "article",
+            "page_category": article.category.id,
+            "nav_categories": get_categories(),
             "content": content_html,
             "difficulty": article.difficulty,
             "image": article.image,
@@ -443,9 +442,7 @@ def get_article(article):
                                             current_app.config['DATE_STRING_FORMAT'])),
             "tags": tags,
         }
-        return render_template('general-template.html',
-                               data=json.dumps(data),
-                               type_js='article')
+        return render_template('general-template.html', data=json.dumps(data))
 
     # If there is no articles, return an error
     else:
