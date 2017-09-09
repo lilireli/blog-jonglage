@@ -7,7 +7,7 @@ from time import sleep
 from .conftest import headers_authorization
 from blogapp.models import Article, Category, Tag
 from blogapp.views import (convert_to_bool, identifize, get_or_create_tag,
-                           get_nb_pages, get_index_articles)
+                           get_nb_pages, get_index_articles, get_categories)
 
 # Utils
 
@@ -146,6 +146,64 @@ def test_get_or_create_tag(client, test_db, truncate):
     query = test_db.session.query(Tag).filter_by(id='another-tag')
     assert len([tag for tag in query]) == 1
 
+
+def test_get_categories(client, test_db, truncate):
+
+    # Creation of the categories
+    data_to_post_create = {'name': 'a category non empty',
+                           'description': 'test category'}
+    client.post('/categories/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'another category non empty',
+                           'description': 'test category'}
+    client.post('/categories/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'an empty category',
+                           'description': 'test category'}
+    client.post('/categories/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'journal',
+                           'description': 'journal category'}
+    client.post('/categories/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the articles
+    data_to_post = {"name": "a test article",
+                    "author": "a test author",
+                    "content": (BytesIO(b"a test content"), "test.txt"),
+                    "category": "a-category-non-empty",
+                    "is_beginner": "True",
+                    "tags": "tag1,tag2",
+                    "description": "a test description",
+                    "difficulty": "5"}
+    client.post('/articles/create', data=data_to_post,
+                headers=headers_authorization)
+
+    data_to_post = {"name": "a second test article",
+                    "author": "a test author",
+                    "content": (BytesIO(b"a test content"), "test.txt"),
+                    "category": "another-category-non-empty",
+                    "is_beginner": "True",
+                    "tags": "tag1,tag2",
+                    "description": "a test description",
+                    "difficulty": "5"}
+    client.post('/articles/create', data=data_to_post,
+                headers=headers_authorization)
+
+    categories_non_empty = get_categories()
+    categories_non_empty == [{'id': 'journal', 'name': 'journal'},
+                             {'id': 'a-category-non-empty',
+                              'name': 'a category non empty'},
+                             {'id': 'another-category-non-empty',
+                              'name': 'another category non empty'}]
+
 # General routes
 
 
@@ -198,39 +256,6 @@ def test_get_journal(client, test_db, truncate):
                 data=data_to_post_create)
     assert client.get('/categories/journal').status_code == 200
 
-
-def test_get_categories(client, test_db, truncate):
-
-    # Creation of the categories
-    data_to_post_create = {'name': 'a category non empty',
-                           'description': 'test category'}
-    client.post('/categories/create',
-                headers=headers_authorization,
-                data=data_to_post_create)
-    data_to_post_create = {'name': 'an empty category',
-                           'description': 'test category'}
-    client.post('/categories/create',
-                headers=headers_authorization,
-                data=data_to_post_create)
-
-    # Creation of the article
-    data_to_post = {"name": "a test article",
-                    "author": "a test author",
-                    "content": (BytesIO(b"a test content"), "test.txt"),
-                    "category": "a-category-non-empty",
-                    "is_beginner": "True",
-                    "tags": "tag1,tag2",
-                    "description": "a test description",
-                    "difficulty": "5"}
-
-    client.post('/articles/create', data=data_to_post,
-                headers=headers_authorization)
-
-    response = client.get('/categories/')
-    assert response.status_code == 200
-    assert (json.loads(response.data.decode('utf-8'))
-            == [{'id': 'a-category-non-empty',
-                 'name': 'a category non empty'}])
 
 def test_get_json_category(client, test_db, truncate):
 
