@@ -18,6 +18,7 @@ var menu = new Vue({
         }
     },
     mounted: function(){
+        console.log("mounted");
         this.fetchData();
     }
 });
@@ -26,10 +27,16 @@ var menuMobile = new Vue({
     el: '#nav-container-mobile',
     methods: {
         openMenu: function () {
+            console.log("open");
             document.getElementById("mySidenav").style.display = "block";
             document.getElementById("myOverlay").style.display = "block";
         }
     }
+});
+
+var articleLabels = Vue.component('article-labels', {
+    template: '#template-article-labels',
+    props: ['category', 'tags']
 });
 
 var articleListByTag = Vue.component('list-article-by-tag', {
@@ -49,7 +56,7 @@ var articleListByTag = Vue.component('list-article-by-tag', {
             window.location = "/articles/" + article;
         }
     }
-})
+});
 
 var articleListByTimeline = Vue.component('list-article-by-timeline', {
     template: '#template-list-article-by-timeline',
@@ -98,7 +105,7 @@ var articleListByTimeline = Vue.component('list-article-by-timeline', {
             return link;
         }
     }
-})
+});
 
 var homeComponent = Vue.component('content-page-home', {
     template: '#template-content-home',
