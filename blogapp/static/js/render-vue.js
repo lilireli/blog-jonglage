@@ -18,7 +18,6 @@ var menu = new Vue({
         }
     },
     mounted: function(){
-        console.log("mounted");
         this.fetchData();
     }
 });
@@ -27,7 +26,6 @@ var menuMobile = new Vue({
     el: '#nav-container-mobile',
     methods: {
         openMenu: function () {
-            console.log("open");
             document.getElementById("mySidenav").style.display = "block";
             document.getElementById("myOverlay").style.display = "block";
         }
