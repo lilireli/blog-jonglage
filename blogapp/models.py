@@ -50,7 +50,8 @@ class Category(db.Model):
             for tag in article.tags:
                 articles_by_tags[(tag.name, tag.description)].append(
                     {"name": article.name, "description": article.description,
-                     "id": article.id, "difficulty": int(article.difficulty)})
+                     "id": article.id, "difficulty": int(article.difficulty),
+                     "image": article.image})
         tags = [{"name": k[0], "description": k[1],
                  "articles": sorted(v, key=lambda art: art['difficulty'])}
                 for k, v in articles_by_tags.items()]

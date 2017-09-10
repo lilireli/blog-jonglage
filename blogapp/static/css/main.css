@@ -39,6 +39,30 @@ img {
   max-width: 100%;
 }
 
+/* Main Primary color */
+.color-primary-0 { color: #2C8437 !important }
+.color-primary-1 { color: #D4FAD9 !important }
+.color-primary-2 { color: #73C37D !important }
+.color-primary-3 { color: #05450D !important }
+.color-primary-4 { color: #000501 !important }
+
+.color-background-primary-0 {
+    background-color: #2C8437 !important;
+    color: white;
+}
+.color-background-primary-1 { background-color: #D4FAD9 !important }
+.color-background-primary-2 { background-color: #73C37D !important }
+.color-background-primary-3 { background-color: #05450D !important }
+.color-background-primary-4 { background-color: #000501 !important }
+
+.color-background-primary:hover {
+    background-color: #73C37D !important;
+}
+
+.color-border-primary {
+    border: 1px solid #73C37D;
+}
+
 .uppercase {
   text-transform: uppercase;
 }
@@ -82,4 +106,8 @@ img {
 
 .article h2, .article h3, .article h4, .article h5 {
   margin: 50px 0px 0px 0px
+}
+
+.article-small-image {
+    max-height: 200px;
 }

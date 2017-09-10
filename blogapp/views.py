@@ -536,7 +536,7 @@ def modify_article(article_id):
             article.difficulty = (int(request.form['difficulty'])
                                   if 'difficulty' in request.form
                                   else article.difficulty)
-            article.image = (int(request.form['image'])
+            article.image = (request.form['image']
                              if 'image' in request.form
                              else article.image)
 

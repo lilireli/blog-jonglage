@@ -32,6 +32,11 @@ var menuMobile = new Vue({
     }
 });
 
+var articleLabels = Vue.component('article-labels', {
+    template: '#template-article-labels',
+    props: ['category', 'tags']
+});
+
 var articleListByTag = Vue.component('list-article-by-tag', {
     template: '#template-list-article-by-tag',
     props: ['page'],
@@ -49,7 +54,7 @@ var articleListByTag = Vue.component('list-article-by-tag', {
             window.location = "/articles/" + article;
         }
     }
-})
+});
 
 var articleListByTimeline = Vue.component('list-article-by-timeline', {
     template: '#template-list-article-by-timeline',
@@ -98,7 +103,7 @@ var articleListByTimeline = Vue.component('list-article-by-timeline', {
             return link;
         }
     }
-})
+});
 
 var homeComponent = Vue.component('content-page-home', {
     template: '#template-content-home',

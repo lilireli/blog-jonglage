@@ -24,9 +24,9 @@
             </div>
 
             <!-- List of categories -->
-            <a href="/" class="w3-padding uppercase" v-bind:class="{'w3-text-teal': classActivated('home')}">home</a>
+            <a href="/" class="w3-padding uppercase" v-bind:class="{'w3-text-teal color-primary-2': classActivated('home')}">home</a>
             <a v-for="cat in nav_categories" v-bind:href="'/categories/'+cat.id"
-               class="w3-padding uppercase" v-bind:class="{'w3-text-teal': classActivated(cat.id)}">
+               class="w3-padding uppercase" v-bind:class="{'w3-text-teal color-primary-2': classActivated(cat.id)}">
                 {{cat.name}}
             </a>
 
@@ -97,17 +97,30 @@
     <!-- End page content -->
 
     <!-- Templates -->
+    <template id='template-article-labels'>
+        <span>
+            <span class="w3-teal w3-padding-small uppercase margin-small-right color-background-primary-0">{{category}}</span>
+            <span v-for="tag in tags" class="w3-dark-grey w3-round-xlarge w3-padding-small lowercase margin-small-right">
+                {{tag.name}}
+            </span>
+        </span>
+    </template>
+
     <template id='template-list-article-by-timeline'>
         <div>
             <div class="w3-container">
                 <div v-for="article in page.articles" class="w3-container w3-margin-bottom w3-white article-small" v-on:click="handleClickArticle(article.id)">
-                    <h2>{{article.name}}</h2>
-                    <p class="w3-text-grey">
-                        <span class="margin-small-right">Le {{article.creation_date}} sous</span>
-                        <span class="w3-teal w3-padding-small uppercase margin-small-right">{{article.category}}</span>
-                        <span v-for="tag in article.tags" class="w3-dark-grey w3-round-xlarge w3-padding-small lowercase margin-small-right">{{tag.name}}</span>
-                    </p>
-                    <p>{{article.description}}</p>
+                    <div :class="{'w3-col s12 m8 l10': article.image != null}">
+                        <h2>{{article.name}}</h2>
+                        <p class="w3-text-grey">
+                            <span class="margin-small-right">Par <span class="color-primary-0">{{article.author}}</span> le {{article.creation_date}} sous </span>
+                            <article-labels :category="article.category" :tags="article.tags"></article-labels>
+                        </p>
+                        <p>{{article.description}}</p>
+                    </div>
+                    <div v-if="article.image != null" class="w3-col s12 m4 l2 w3-margin-top w3-margin-bottom">
+                        <img :src="'/static/img/'+article.image" class="article-small-image" align="right"></img>
+                    </div>
                 </div>
             </div>
 
@@ -129,20 +142,27 @@
             </div>
 
             <div class="w3-container">
-                <h2>Voir toutes les figures par catégories :</h2>
+                <h3>Voir toutes les figures par catégories :</h3>
                 <div class="w3-accordion w3-light-grey">
                     <div>
-                        <div v-for="tag in page.tags">
-                            <button v-on:click="handleClickTag(tag.name)" class="w3-btn-block w3-left-align capitalize">
+                        <div v-for="tag in page.tags" class="w3-margin-top">
+                            <button :id="'button-'+tag.name" v-on:click="handleClickTag(tag.name)"
+                                    class="w3-btn-block w3-left-align capitalize w3-button color-background-primary color-background-primary-0">
                                 {{tag.name}}
                             </button>
-                            <div :id="tag.name" class="w3-accordion-content w3-container w3-white w3-padding-bottom">
-                                <p>{{tag.name}}</p>
+                            <div :id="tag.name" class="w3-accordion-content w3-container w3-white w3-padding-bottom color-border-primary">
+                                <p>{{tag.description}}</p>
                                 <div>
-                                    <div v-for="article in tag.articles" class="w3-container w3-col s3 w3-padding">
-                                        <div class="w3-container w3-pale-blue article-small" v-on:click="handleClickArticle(article.id)">
+                                    <div v-for="article in tag.articles" class="w3-container w3-col s12 m6 l4 w3-padding-16">
+                                        <div class="w3-container article-small w3-light-grey w3-hover-grey"
+                                             v-on:click="handleClickArticle(article.id)">
                                             <h2>{{article.name}}</h2>
-                                            <p>{{article.description}}</p>
+                                            <div :class="{'w3-col s8': article.image != null}">
+                                                <p>{{article.description}}</p>
+                                            </div>
+                                            <div v-if="article.image != null" class="w3-col s4 w3-margin-top w3-margin-bottom">
+                                                <img :src="'/static/img/'+article.image" class="article-small-image" align="right"></img>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -192,12 +212,7 @@
 
     <template id='template-content-article'>
         <div>
-            <p>
-                <span class="w3-teal w3-padding-small uppercase margin-small-right">{{page.category}}</span>
-                <span v-for="tag in page.tags" class="w3-dark-grey w3-round-xlarge w3-padding-small lowercase margin-small-right">
-                    {{tag.name}}
-                </span>
-            </p>
+            <p><article-labels :category="page.category" :tags="page.tags"></article-labels></p>
             <h1><b>{{page.name}}</b></h1>
             <p class="w3-text-grey">Par <b>{{page.author}}</b> {{getDate(page.creation_date, page.last_modification_date)}}</p>
             <div class="w3-section w3-bottombar"></div>
@@ -226,7 +241,6 @@
     var data = $data|safe$
 </script>
 <script src="/static/lib/vue.js"></script>
-<script src="/static/lib/babel-core-browser.min.js"></script>
 <script src="/static/js/render-vue.js"></script>
 
 </body>
