@@ -3,7 +3,7 @@ This project is the creation of a blog onto the juggling. It is in python 3.
 # Installation
 
 * Install virtualenv, libffi-dev, libmysqlclient-dev and python3-dev
-* Create a virtual environment into the application: `virtualenv venv`
+* Create a virtual environment into the application: `virtualenv venv`. Be sure to use python 3 (you can use `virtualenv venv -p /usr/bin/python3` to say to virtualenv to use python 3 interpreter)
 * Activate the virtual environment: `source venv/bin/activate`
 * Install the necessaries libraries : `pip install -r requirements.txt`
 * Verify that your locale (fr_FR.utf8 for french) is installed with `locale -a`
