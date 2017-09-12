@@ -258,9 +258,9 @@ def initialize():
     return Response('Database and static folder initialized')
 
 
-@general_blueprint.route('/upload/<path:type>', methods=['POST'])
+@general_blueprint.route('/upload/<path:path>', methods=['POST'])
 @auth.login_required
-def upload_file(type):
+def upload_file(path):
     """ Upload a static file. The location is took from the configuration.
     If we are in dev, this is the default static folder. Else, this will be
     a folder served by another sever (nginx for example)
@@ -268,12 +268,12 @@ def upload_file(type):
     if request.method == 'POST':
         upload_folder = os.path.join(os.getcwd(),
                                      current_app.config['STATIC_FOLDER'])
-        if not os.path.exists(os.path.join(upload_folder, type)):
-            os.mkdir(os.path.join(upload_folder, type))
+        if not os.path.exists(os.path.join(upload_folder, path)):
+            os.mkdir(os.path.join(upload_folder, path))
         file = request.files['file']
         if file:
             filename = secure_filename(file.filename)
-            file.save(os.path.join(upload_folder, type, filename))
+            file.save(os.path.join(upload_folder, path, filename))
     return Response('File uploaded')
 
 # Swagger

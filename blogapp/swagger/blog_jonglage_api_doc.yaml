@@ -30,7 +30,7 @@ paths:
       tags:
         - Initialization
 
-  /upload/{type}:
+  /upload/{path}:
     post:
       summary: Upload a static file
       parameters:
@@ -39,9 +39,9 @@ paths:
           description: File to upload
           required: true
           type: file
-        - name: type
+        - name: path
           in: path
-          description: The type of file to upload
+          description: The path of file to upload
           required: true
           type: string
       tags:
