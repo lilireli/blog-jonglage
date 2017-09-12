@@ -172,7 +172,7 @@ def get_categories():
     # We want the journal to be first, the other categories to be in
     # alphabetical order
     journal_category = [{'id': 'journal', 'name': 'Journal'}]
-    categories_all = journal_category + sorted(journal_category,
+    categories_all = journal_category + sorted(categories_filtered,
                                                key=lambda cat: cat['name'])
     return categories_all
 
