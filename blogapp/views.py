@@ -233,8 +233,10 @@ def initialize():
     db.session.commit()
 
     # Copy of the useful static file for application
-    if (current_app.config['STATIC_FOLDER'] != 'blogapp/static'
-        and not os.path.exists(current_app.config['STATIC_FOLDER'])):
+    if current_app.config['STATIC_FOLDER'] != 'blogapp/static':
+        # We delete qll if it qlreqdy exists
+        if os.path.exists(current_app.config['STATIC_FOLDER']):
+            shutil.rmtree(current_app.config['STATIC_FOLDER'])
         shutil.copytree('blogapp/static', current_app.config['STATIC_FOLDER'])
 
     # Download of the external static file
