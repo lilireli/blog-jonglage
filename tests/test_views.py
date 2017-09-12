@@ -198,11 +198,11 @@ def test_get_categories(client, test_db, truncate):
                 headers=headers_authorization)
 
     categories_non_empty = get_categories()
-    categories_non_empty == [{'id': 'journal', 'name': 'journal'},
-                             {'id': 'a-category-non-empty',
-                              'name': 'a category non empty'},
-                             {'id': 'another-category-non-empty',
-                              'name': 'another category non empty'}]
+    assert categories_non_empty == [{'id': 'journal', 'name': 'Journal'},
+                                    {'id': 'a-category-non-empty',
+                                     'name': 'a category non empty'},
+                                    {'id': 'another-category-non-empty',
+                                     'name': 'another category non empty'}]
 
 # General routes
 
