@@ -157,7 +157,8 @@ def get_or_create_tag(tags_name):
 
 
 def get_categories():
-    """ Retrieve all categories which have existing articles
+    """ Retrieve all categories which have existing articles. We put journal
+    first, and then sort the other by alhabetical order
     """
     query_cat = db.session.query(Category)
     categories = query_cat.all()
@@ -165,8 +166,15 @@ def get_categories():
     # If the query send anything, we have a non-empty list, which is True
     categories_filtered = [
         {'id': cat.id, 'name': cat.name} for cat in categories
-        if db.session.query(Article).filter_by(category_id=cat.id).all()]
-    return categories_filtered
+        if db.session.query(Article).filter_by(category_id=cat.id).all()
+        if cat.id != 'journal']
+
+    # We want the journal to be first, the other categories to be in
+    # alphabetical order
+    journal_category = [{'id': 'journal', 'name': 'Journal'}]
+    categories_all = journal_category + sorted(categories_filtered,
+                                               key=lambda cat: cat['name'])
+    return categories_all
 
 # Index route
 
@@ -226,6 +234,9 @@ def initialize():
 
     # Copy of the useful static file for application
     if current_app.config['STATIC_FOLDER'] != 'blogapp/static':
+        # We delete qll if it qlreqdy exists
+        if os.path.exists(current_app.config['STATIC_FOLDER']):
+            shutil.rmtree(current_app.config['STATIC_FOLDER'])
         shutil.copytree('blogapp/static', current_app.config['STATIC_FOLDER'])
 
     # Download of the external static file
