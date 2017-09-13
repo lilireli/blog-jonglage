@@ -39,6 +39,24 @@ img {
   max-width: 100%;
 }
 
+.main-content img {
+    display: block;
+    margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+    .main-content img {width:100%;}
+}
+@media (min-width: 640px) and (max-width: 800px) {
+    .main-content img {width:70%;}
+}
+@media (min-width: 800px) and (max-width: 1024px) {
+    .main-content img {width:50%;}
+}
+@media (min-width: 1024px) {
+    .main-content img {width:30%;}
+}
+
 /* Main Primary color */
 .color-primary-0 { color: #2C8437 !important }
 .color-primary-1 { color: #D4FAD9 !important }
