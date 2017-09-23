@@ -176,6 +176,11 @@ def get_categories():
                                                key=lambda cat: cat['name'])
     return categories_all
 
+
+def copy_static_file():
+    """ Copy the static files from the git repositories to the static files
+    repository. If files exists"""
+
 # Index route
 
 
@@ -233,11 +238,17 @@ def initialize():
     db.session.commit()
 
     # Copy of the useful static file for application
-    if current_app.config['STATIC_FOLDER'] != 'blogapp/static':
-        # We delete qll if it qlreqdy exists
-        if os.path.exists(current_app.config['STATIC_FOLDER']):
-            shutil.rmtree(current_app.config['STATIC_FOLDER'])
-        shutil.copytree('blogapp/static', current_app.config['STATIC_FOLDER'])
+    static_folder = current_app.config['STATIC_FOLDER']
+    if static_folder != 'blogapp/static':
+        for dir in os.listdir('blogapp/static'):
+            current_dir = os.path.join(static_folder, dir)
+            if not os.path.exists(current_dir):
+                os.makedirs(current_dir)
+            for f in os.listdir(current_dir):
+                static_file = os.path.join(current_dir, f)
+                if not exists(static_file):
+                    os.symlink(os.path.join('blogapp/static', dir, f),
+                               static_file)
 
     # Download of the external static file
     with open('config/to_download.json') as json_download:
