@@ -246,10 +246,16 @@ def initialize():
                 os.makedirs(current_dir)
             for f in os.listdir(os.path.join('blogapp/static', dir)):
                 static_file = os.path.join(current_dir, f)
-                if not os.path.exists(static_file):
-                    os.symlink(
-                        os.path.abspath(os.path.join('blogapp/static', dir, f)),
-                        static_file)
+                if os.path.isdir(os.path.join('blogapp/static/', dir, f)):
+                    if os.path.exists(static_file):
+                        shutil.rmtree(static_file)
+                    shutil.copytree(os.path.join('blogapp/static', dir, f),
+                                    static_file)
+                else:
+                    if os.path.exists(static_file):
+                        os.remove(static_file)
+                    shutil.copy(os.path.join('blogapp/static', dir, f),
+                                static_file)
 
     # Download of the external static file
     with open('config/to_download.json') as json_download:
