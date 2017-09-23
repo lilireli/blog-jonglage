@@ -244,11 +244,12 @@ def initialize():
             current_dir = os.path.join(static_folder, dir)
             if not os.path.exists(current_dir):
                 os.makedirs(current_dir)
-            for f in os.listdir(current_dir):
+            for f in os.listdir(os.path.join('blogapp/static', dir)):
                 static_file = os.path.join(current_dir, f)
                 if not os.path.exists(static_file):
-                    os.symlink(os.path.join('blogapp/static', dir, f),
-                               static_file)
+                    os.symlink(
+                        os.path.abspath(os.path.join('blogapp/static', dir, f)),
+                        static_file)
 
     # Download of the external static file
     with open('config/to_download.json') as json_download:
