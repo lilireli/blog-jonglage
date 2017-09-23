@@ -246,7 +246,7 @@ def initialize():
                 os.makedirs(current_dir)
             for f in os.listdir(current_dir):
                 static_file = os.path.join(current_dir, f)
-                if not exists(static_file):
+                if not os.exists(static_file):
                     os.symlink(os.path.join('blogapp/static', dir, f),
                                static_file)
 
