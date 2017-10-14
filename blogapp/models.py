@@ -22,7 +22,7 @@ class Category(db.Model):
 
     id = db.Column(db.String(50), primary_key=True)
     name = db.Column(db.String(50))
-    description = db.Column(db.String(2000))
+    description = db.Column(db.String(10000))
 
     articles = db.relationship("Article", back_populates="category")
 
@@ -64,15 +64,15 @@ class Article(db.Model):
     __tablename__ = 'articles'
 
     id = db.Column(db.String(50), primary_key=True)
-    name = db.Column(db.String(50))
+    name = db.Column(db.String(200))
     author = db.Column(db.String(30))
-    content = db.Column(db.String(10000))
-    description = db.Column(db.String(500))
+    content = db.Column(db.String(100000))
+    description = db.Column(db.String(2000))
     creation_date = db.Column(db.DateTime)
     last_modification_date = db.Column(db.DateTime)
     is_beginner = db.Column(db.Boolean)
     difficulty = db.Column(db.Integer)
-    image = db.Column(db.String(50), nullable=True)
+    image = db.Column(db.String(100), nullable=True)
     category_id = db.Column(db.String(50), db.ForeignKey('categories.id',
                                                          ondelete="CASCADE"))
 
@@ -116,8 +116,8 @@ class Tag(db.Model):
     __tablename__ = 'tags'
 
     id = db.Column(db.String(50), primary_key=True)
-    name = db.Column(db.String(50))
-    description = db.Column(db.String(200))
+    name = db.Column(db.String(100))
+    description = db.Column(db.String(2000))
 
     articles = db.relationship('Article', secondary=article_to_tag,
                                back_populates='tags')
