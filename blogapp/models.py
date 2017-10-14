@@ -63,8 +63,8 @@ class Article(db.Model):
     """
     __tablename__ = 'articles'
 
-    id = db.Column(db.String(200), primary_key=True)
-    name = db.Column(db.String(200))
+    id = db.Column(db.String(190), primary_key=True)
+    name = db.Column(db.String(190))
     author = db.Column(db.String(30))
     content = db.Column(db.String(100000))
     description = db.Column(db.String(2000))
