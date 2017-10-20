@@ -118,7 +118,7 @@
                         </p>
                         <p>{{article.description}}</p>
                     </div>
-                    <div v-if="article.image != null" class="w3-col s12 m4 l2 w3-margin-top w3-margin-bottom">
+                    <div v-if="article.image != ''" class="w3-col s12 m4 l2 w3-margin-top w3-margin-bottom">
                         <img :src="'/static/img/'+article.image" class="article-small-image" align="right"></img>
                     </div>
                 </div>
