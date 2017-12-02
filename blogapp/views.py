@@ -181,6 +181,30 @@ def copy_static_file():
     """ Copy the static files from the git repositories to the static files
     repository. If files exists"""
 
+# Error route
+
+
+@general_blueprint.app_errorhandler(404)
+def page_not_found(e):
+    # The data with wich fill in the page
+    data = {
+        "page_type": "error_404",
+        "nav_categories": get_categories()
+    }
+
+    return render_template('general-template.html', data=json.dumps(data)), 404
+
+
+@general_blueprint.app_errorhandler(500)
+def page_not_found(e):
+    # The data with wich fill in the page
+    data = {
+        "page_type": "error_500",
+        "nav_categories": get_categories()
+    }
+
+    return render_template('general-template.html', data=json.dumps(data)), 500
+
 # Index route
 
 
