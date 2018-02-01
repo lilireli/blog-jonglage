@@ -1,0 +1,2 @@
+class  TagNotExistingError(Exception):
+    pass

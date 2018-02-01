@@ -13,6 +13,22 @@ def test_get_tags_and_beginner_links(client, test_db, truncate):
     client.post('/categories/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag3',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the articles
     # Article beginner
     data_to_post = {"name": "article beginner",
@@ -52,7 +68,7 @@ def test_get_tags_and_beginner_links(client, test_db, truncate):
 
     assert len(tags) == 3
     for tag in tags:
-        assert tag['description'] == ''
+        assert tag['description'] == 'a tag for test'
         articles = tag['articles']
         if tag['name'] == 'tag1':
             assert len(articles) == 2

@@ -17,6 +17,7 @@ import wget
 
 from .models import Category, Article, Tag
 from .database import db
+from .exceptions import TagNotExistingError
 
 tags_blueprint = Blueprint('tags', __name__)
 articles_blueprint = Blueprint('articles', __name__)
@@ -135,8 +136,8 @@ def identifize(name):
     return str(id_art, 'utf-8')
 
 
-def get_or_create_tag(tags_name):
-    """Retrieve of the tags. If it doesn't exist, it is created
+def get_tags(tags_name):
+    """ Retrieve the tags. If one of them doesn't exists, return an error
     """
     tags = []
     for tag_name in tags_name:
@@ -145,14 +146,11 @@ def get_or_create_tag(tags_name):
         # We retrieve the tag if it exists
         if len(current_tags) == 1:
             tags.append(current_tags[0])
-        # Else we create it
+        # If not, we raise an exception
         else:
-            tag = Tag(name=tag_name,
-                      id=identifize(tag_name),
-                      description='')
-            db.session.add(tag)
-            db.session.commit()
-            tags.append(tag)
+            raise TagNotExistingError("This tag doesn't exists, you need to"
+                                       " create it: {tag_name}"
+                                       .format(tag_name=tag_name))
     return tags
 
 
@@ -490,7 +488,10 @@ def create_article():
         id_art = identifize(request.form['name'])
 
         # Retrieve of the tags. If it doesn't exist, it is created
-        tags = get_or_create_tag(request.form['tags'].split(','))
+        try:
+            tags = get_tags(request.form['tags'].split(','))
+        except TagNotExistingError as e:
+            return Response(str(e))
 
         is_beginner = convert_to_bool(request.form['is_beginner'])
 
@@ -563,7 +564,10 @@ def modify_article(article_id):
 
             # We have also to create the tags if they don't exist
             if 'tags' in request.form:
-                tags = get_or_create_tag(request.form['tags'].split(','))
+                try:
+                    tags = get_tags(request.form['tags'].split(','))
+                except TagNotExistingError as e:
+                    return Response(str(e))
                 article.tags = tags
 
             article.last_modification_date = now

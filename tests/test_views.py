@@ -4,10 +4,13 @@ from io import BytesIO
 import json
 from time import sleep
 
+import pytest
+
 from .conftest import headers_authorization
 from blogapp.models import Article, Category, Tag
-from blogapp.views import (convert_to_bool, identifize, get_or_create_tag,
+from blogapp.views import (convert_to_bool, identifize, get_tags,
                            get_nb_pages, get_index_articles, get_categories)
+from blogapp.exceptions import TagNotExistingError
 
 # Utils
 
@@ -27,6 +30,17 @@ def test_get_nb_pages(client, test_db, truncate):
                                    'description': 'journal category'}
     client.post('/categories/create', headers=headers_authorization,
                 data=data_to_post_create_journal)
+
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
 
     # Creation of the articles
     for i in range(25):
@@ -76,6 +90,17 @@ def test_get_index_articles(client, test_db, truncate):
     client.post('/categories/create', headers=headers_authorization,
                 data=data_to_post_create_journal)
 
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the articles
     for i in range(25):
         data_to_post = {"name": "article {}".format(i),
@@ -124,27 +149,36 @@ def test_identifize():
     assert identifize('éèêàâîù') == 'eeeaaiu'
 
 
-def test_get_or_create_tag(client, test_db, truncate):
+def test_get_tags(client, test_db, truncate):
+    # Creation of the tags
+    data_to_post_create = {'name': 'a get tag',
+                           'description': 'test tag'}
+    client.post('/tags/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
 
-    # Creation of the tag
-    data_to_post_create = {'name': 'a get or create tag',
+    data_to_post_create = {'name': 'another get tag',
                            'description': 'test tag'}
     client.post('/tags/create',
                 headers=headers_authorization,
                 data=data_to_post_create)
 
     # Tests
-    tags = get_or_create_tag(['a-get-or-create-tag', 'another tag'])
+    tags = get_tags(['a-get-tag',
+                              'another-get-tag'])
     assert len(tags) == 2
-    assert tags[0].id == 'a-get-or-create-tag'
-    assert tags[0].name == 'a get or create tag'
+    assert tags[0].id == 'a-get-tag'
+    assert tags[0].name == 'a get tag'
     assert tags[0].description == 'test tag'
-    assert tags[1].id == 'another-tag'
-    assert tags[1].name == 'another tag'
-    assert tags[1].description == ''
+    assert tags[1].id == 'another-get-tag'
+    assert tags[1].name == 'another get tag'
+    assert tags[1].description == 'test tag'
 
-    query = test_db.session.query(Tag).filter_by(id='another-tag')
-    assert len([tag for tag in query]) == 1
+    # Non existing tag
+    with pytest.raises(TagNotExistingError) as excinfo:
+        get_tags(['non-existing-tag'])
+    assert excinfo.value.args[0] == ("This tag doesn't exists, you need to"
+                                     " create it: non-existing-tag")
 
 
 def test_get_categories(client, test_db, truncate):
@@ -172,6 +206,17 @@ def test_get_categories(client, test_db, truncate):
                            'description': 'journal category'}
     client.post('/categories/create',
                 headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
     # Creation of the articles
@@ -346,6 +391,17 @@ def test_get_article(client, test_db, truncate):
     client.post('/categories/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the article
     data_to_post = {"name": "a test article",
                     "author": "a test author",
@@ -373,6 +429,17 @@ def test_create_article(client, test_db, truncate):
     data_to_post_create = {'name': 'a test category',
                            'description': 'test category'}
     client.post('/categories/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
     # Tests
@@ -407,6 +474,23 @@ def test_create_article(client, test_db, truncate):
     assert article.tags[1].id == 'tag2'
     assert article.creation_date == article.last_modification_date
 
+    # Test for article non existing
+    data_to_post = {"name": "a test article",
+                    "author": "a test author",
+                    "content": (BytesIO(b"a test content"), "test.txt"),
+                    "category": "a-test-category",
+                    "is_beginner": "True",
+                    "tags": "tag1,tag3",
+                    "description": "a test description",
+                    "difficulty": "5",
+                    "image": "a test image"}
+    response = client.post("/articles/create",
+                           headers=headers_authorization,
+                           data=data_to_post)
+    assert response.status_code == 200
+    assert response.data == (b"This tag doesn't exists, you need to create it:"
+                             b" tag3")
+    
 
 def test_get_json_article(client, test_db, truncate):
 
@@ -414,6 +498,17 @@ def test_get_json_article(client, test_db, truncate):
     data_to_post_create = {'name': 'a test category',
                            'description': 'test category'}
     client.post('/categories/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
     # Creation of the article
@@ -452,6 +547,22 @@ def test_modify_article(client, test_db, truncate):
     data_to_post_create = {'name': 'a test category',
                            'description': 'test category'}
     client.post('/categories/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag3',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
     # Creation of the article
@@ -495,6 +606,14 @@ def test_modify_article(client, test_db, truncate):
     assert article.tags[1].id == 'tag3'
     assert article.creation_date != article.last_modification_date
 
+    # Test for non existing tag
+    data_to_post = {"name": "another article",
+                    "tags": "tag1,tag4"}
+    response = client.post('/articles/a-modify-article/modify',
+                           headers=headers_authorization, data=data_to_post)
+    assert response.status_code == 200
+    assert response.data == (b"This tag doesn't exists, you need to create it:"
+                             b" tag4")
 
 def test_delete_article(client, test_db):
 
@@ -502,6 +621,17 @@ def test_delete_article(client, test_db):
     data_to_post_create = {'name': 'a test category',
                            'description': 'test category'}
     client.post('/categories/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the tags
+    data_to_post_create = {'name': 'tag1',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    data_to_post_create = {'name': 'tag2',
+                           'description': 'a tag for test'}
+    client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
     # Creation of the article
