@@ -17,7 +17,7 @@ import wget
 
 from .models import Category, Article, Tag
 from .database import db
-from .exceptions import TagNotExistingError
+from .exceptions import (TagNotExistingError, CategoryNotExistingError)
 
 tags_blueprint = Blueprint('tags', __name__)
 articles_blueprint = Blueprint('articles', __name__)
@@ -152,6 +152,20 @@ def get_tags(tags_name):
                                        " create it: {tag_name}"
                                        .format(tag_name=tag_name))
     return tags
+
+
+def get_existing_category(category_id):
+    """ Retrieve the given category. If it doesn't exist, return an error
+    """
+    query = db.session.query(Category).filter_by(id=category_id)
+    categories = query.all()
+    # We retrieve the category if it exists
+    if len(categories) == 1:
+        return categories[0]
+    else:
+        raise CategoryNotExistingError("This category doesn't exists, you need"
+                                       " to create it: {category_id}"
+                                       .format(category_id=category_id))
 
 
 def get_categories():
@@ -493,15 +507,20 @@ def create_article():
         except TagNotExistingError as e:
             return Response(str(e))
 
+        try:
+            category = get_existing_category(request.form['category'])
+        except CategoryNotExistingError as e:
+            return Response(str(e))
+
         is_beginner = convert_to_bool(request.form['is_beginner'])
 
         article = Article(
             name=request.form['name'], author=request.form['author'],
             content=request.files['content'].read(),
-            category_id=request.form['category'], creation_date=now,
+            creation_date=now, category_id=category.id,
             last_modification_date=now, is_beginner=is_beginner,
             description=request.form['description'], id=id_art, tags=tags,
-            difficulty=request.form['difficulty'],
+            difficulty=request.form['difficulty'], category=category,
             image=request.form['image'] if 'image' in request.form else '')
         db.session.add(article)
         db.session.commit()
@@ -552,9 +571,6 @@ def modify_article(article_id):
                                        request.form['is_beginner'])
                                    if 'is_beginner' in request.form
                                    else article.is_beginner)
-            article.category_id = (request.form['category_id']
-                                   if 'category_id' in request.form
-                                   else article.category_id)
             article.difficulty = (int(request.form['difficulty'])
                                   if 'difficulty' in request.form
                                   else article.difficulty)

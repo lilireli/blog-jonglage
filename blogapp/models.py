@@ -88,7 +88,7 @@ class Article(db.Model):
                         "author": self.author, "content": self.content,
                         "is_beginner": self.is_beginner,
                         "description": self.description,
-                        "category_id": self.category_id, "tags": tags,
+                        "category_id": self.category.id, "tags": tags,
                         "difficulty": str(self.difficulty),
                         "image": self.image}
         return json.dumps(article_json)

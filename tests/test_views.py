@@ -9,8 +9,9 @@ import pytest
 from .conftest import headers_authorization
 from blogapp.models import Article, Category, Tag
 from blogapp.views import (convert_to_bool, identifize, get_tags,
-                           get_nb_pages, get_index_articles, get_categories)
-from blogapp.exceptions import TagNotExistingError
+                           get_nb_pages, get_index_articles, get_categories,
+                           get_existing_category)
+from blogapp.exceptions import TagNotExistingError, CategoryNotExistingError
 
 # Utils
 
@@ -179,6 +180,25 @@ def test_get_tags(client, test_db, truncate):
         get_tags(['non-existing-tag'])
     assert excinfo.value.args[0] == ("This tag doesn't exists, you need to"
                                      " create it: non-existing-tag")
+
+def test_get_existing_category(client, test_db, truncate):
+    # Creation of the categories
+    data_to_post_create = {'name': 'a category',
+                           'description': 'test category'}
+    client.post('/categories/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Tests
+    category = get_existing_category('a-category')
+    assert category.id == 'a-category'
+    assert category.name == 'a category'
+    assert category.description == 'test category'
+
+    with pytest.raises(CategoryNotExistingError) as excinfo:
+        get_existing_category('non-existing-category')
+    assert excinfo.value.args[0] == ("This category doesn't exists, you need to"
+                                     " create it: non-existing-category")
 
 
 def test_get_categories(client, test_db, truncate):
@@ -474,8 +494,8 @@ def test_create_article(client, test_db, truncate):
     assert article.tags[1].id == 'tag2'
     assert article.creation_date == article.last_modification_date
 
-    # Test for article non existing
-    data_to_post = {"name": "a test article",
+    # Test for tag non existing
+    data_to_post = {"name": "a tag test article",
                     "author": "a test author",
                     "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "a-test-category",
@@ -490,7 +510,24 @@ def test_create_article(client, test_db, truncate):
     assert response.status_code == 200
     assert response.data == (b"This tag doesn't exists, you need to create it:"
                              b" tag3")
-    
+
+    # Test for category non existing
+    data_to_post = {"name": "a category test article",
+                    "author": "a test author",
+                    "content": (BytesIO(b"a test content"), "test.txt"),
+                    "category": "non-existing-category",
+                    "is_beginner": "True",
+                    "tags": "tag1,tag2",
+                    "description": "a test description",
+                    "difficulty": "5",
+                    "image": "a test image"}
+    response = client.post("/articles/create",
+                           headers=headers_authorization,
+                           data=data_to_post)
+    assert response.status_code == 200
+    assert response.data == (b"This category doesn't exists, you need to"
+                             b" create it: non-existing-category")
+
 
 def test_get_json_article(client, test_db, truncate):
 
