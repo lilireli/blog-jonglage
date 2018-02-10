@@ -3,3 +3,6 @@ class  TagNotExistingError(Exception):
 
 class  CategoryNotExistingError(Exception):
     pass
+
+class  AuthorNotExistingError(Exception):
+    pass

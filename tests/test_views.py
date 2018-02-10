@@ -7,11 +7,12 @@ from time import sleep
 import pytest
 
 from .conftest import headers_authorization
-from blogapp.models import Article, Category, Tag
+from blogapp.models import Article, Category, Tag, Author
 from blogapp.views import (convert_to_bool, identifize, get_tags,
                            get_nb_pages, get_index_articles, get_categories,
-                           get_existing_category)
-from blogapp.exceptions import TagNotExistingError, CategoryNotExistingError
+                           get_existing_category, get_existing_author)
+from blogapp.exceptions import (TagNotExistingError, CategoryNotExistingError,
+                                AuthorNotExistingError)
 
 # Utils
 
@@ -43,10 +44,24 @@ def test_get_nb_pages(client, test_db, truncate):
     client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the author
+    data_to_post_create = {'name': 'a test author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the author
+    data_to_post_create = {'name': 'a test journal author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the articles
     for i in range(25):
         data_to_post = {"name": "article {}".format(i),
-                        "author": "a test author",
+                        "author": "a-test-author",
                         "content": (BytesIO(b"a test content"), "test.txt"),
                         "category": "a-test-category",
                         "is_beginner": "True",
@@ -58,7 +73,7 @@ def test_get_nb_pages(client, test_db, truncate):
 
     for i in range(25, 30):
         data_to_post = {"name": "article {}".format(i),
-                        "author": "a test journal author",
+                        "author": "a-test-journal-author",
                         "content": (BytesIO(b"a test journal content"),
                                     "test_journal.txt"),
                         "category": "journal",
@@ -102,10 +117,24 @@ def test_get_index_articles(client, test_db, truncate):
     client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the author
+    data_to_post_create = {'name': 'a test author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Creation of the author
+    data_to_post_create = {'name': 'a test journal author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the articles
     for i in range(25):
         data_to_post = {"name": "article {}".format(i),
-                        "author": "a test author",
+                        "author": "a-test-author",
                         "content": (BytesIO(b"a test content"), "test.txt"),
                         "category": "a-test-category",
                         "is_beginner": "True",
@@ -117,7 +146,7 @@ def test_get_index_articles(client, test_db, truncate):
 
     for i in range(25, 30):
         data_to_post = {"name": "article {}".format(i),
-                        "author": "a test journal author",
+                        "author": "a-test-journal-author",
                         "content": (BytesIO(b"a test journal content"),
                                     "test_journal.txt"),
                         "category": "journal",
@@ -200,6 +229,26 @@ def test_get_existing_category(client, test_db, truncate):
     assert excinfo.value.args[0] == ("This category doesn't exists, you need to"
                                      " create it: non-existing-category")
 
+def test_get_existing_author(client, test_db, truncate):
+    # Creation of the author
+    data_to_post_create = {'name': 'an author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Tests
+    author = get_existing_author('an-author')
+    assert author.id == 'an-author'
+    assert author.name == 'an author'
+    assert author.description == 'test author'
+
+    with pytest.raises(AuthorNotExistingError) as excinfo:
+        get_existing_author('non-existing-author')
+    assert excinfo.value.args[0] == ("This author doesn't exists, you need to"
+                                     " create it: non-existing-author")
+
+
 
 def test_get_categories(client, test_db, truncate):
 
@@ -239,9 +288,16 @@ def test_get_categories(client, test_db, truncate):
     client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the author
+    data_to_post_create = {'name': 'a test author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the articles
     data_to_post = {"name": "a test article",
-                    "author": "a test author",
+                    "author": "a-test-author",
                     "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "a-category-non-empty",
                     "is_beginner": "True",
@@ -252,7 +308,7 @@ def test_get_categories(client, test_db, truncate):
                 headers=headers_authorization)
 
     data_to_post = {"name": "a second test article",
-                    "author": "a test author",
+                    "author": "a-test-author",
                     "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "another-category-non-empty",
                     "is_beginner": "True",
@@ -422,9 +478,16 @@ def test_get_article(client, test_db, truncate):
     client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the author
+    data_to_post_create = {'name': 'a test author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the article
     data_to_post = {"name": "a test article",
-                    "author": "a test author",
+                    "author": "a-test-author",
                     "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "a-test-category",
                     "is_beginner": "True",
@@ -462,9 +525,16 @@ def test_create_article(client, test_db, truncate):
     client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the author
+    data_to_post_create = {'name': 'a test author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
     # Tests
     data_to_post = {"name": "a test article",
-                    "author": "a test author",
+                    "author": "a-test-author",
                     "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "a-test-category",
                     "is_beginner": "True",
@@ -482,7 +552,7 @@ def test_create_article(client, test_db, truncate):
     article = articles[0]
     assert article.name == 'a test article'
     assert article.id == 'a-test-article'
-    assert article.author == 'a test author'
+    assert article.author_id == 'a-test-author'
     assert article.content == 'a test content'
     assert article.category.id == 'a-test-category'
     assert article.is_beginner
@@ -496,7 +566,7 @@ def test_create_article(client, test_db, truncate):
 
     # Test for tag non existing
     data_to_post = {"name": "a tag test article",
-                    "author": "a test author",
+                    "author": "a-test-author",
                     "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "a-test-category",
                     "is_beginner": "True",
@@ -513,7 +583,7 @@ def test_create_article(client, test_db, truncate):
 
     # Test for category non existing
     data_to_post = {"name": "a category test article",
-                    "author": "a test author",
+                    "author": "a-test-author",
                     "content": (BytesIO(b"a test content"), "test.txt"),
                     "category": "non-existing-category",
                     "is_beginner": "True",
@@ -527,6 +597,24 @@ def test_create_article(client, test_db, truncate):
     assert response.status_code == 200
     assert response.data == (b"This category doesn't exists, you need to"
                              b" create it: non-existing-category")
+
+    # Test for author non existing
+    data_to_post = {"name": "an author test article",
+                    "author": "non-existing-author",
+                    "content": (BytesIO(b"a test content"), "test.txt"),
+                    "category": "a-test-category",
+                    "is_beginner": "True",
+                    "tags": "tag1,tag2",
+                    "description": "a test description",
+                    "difficulty": "5",
+                    "image": "a test image"}
+    response = client.post("/articles/create",
+                           headers=headers_authorization,
+                           data=data_to_post)
+    assert response.status_code == 200
+    assert response.data == (b"This author doesn't exists, you need to"
+                             b" create it: non-existing-author")
+
 
 
 def test_get_json_article(client, test_db, truncate):
@@ -548,9 +636,16 @@ def test_get_json_article(client, test_db, truncate):
     client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the author
+    data_to_post_create = {'name': 'a-test-author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the article
     data_to_post_create = {"name": "an article for test json",
-                           "author": "a test author",
+                           "author": "a-test-author",
                            "content": (BytesIO(b"a test content"), "test.txt"),
                            "category": "a-test-category",
                            "is_beginner": "True",
@@ -568,7 +663,7 @@ def test_get_json_article(client, test_db, truncate):
     assert json.loads(response.data.decode('utf-8')) == {
         'name': 'an article for test json',
         'id': 'an-article-for-test-json',
-        'author': 'a test author',
+        'author': 'a-test-author',
         'content': 'a test content',
         'category_id': 'a-test-category',
         'is_beginner': True,
@@ -602,9 +697,16 @@ def test_modify_article(client, test_db, truncate):
     client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the author
+    data_to_post_create = {'name': 'a test author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the article
     data_to_post_create = {"name": "a modify article",
-                           "author": "a test author",
+                           "author": "a-test-author",
                            "content": (BytesIO(b"a test content"), "test.txt"),
                            "category": "a-test-category",
                            "is_beginner": "True",
@@ -631,7 +733,7 @@ def test_modify_article(client, test_db, truncate):
     article = articles[0]
     assert article.name == 'another article'
     assert article.id == 'a-modify-article'
-    assert article.author == 'a test author'
+    assert article.author_id == 'a-test-author'
     assert article.content == 'a test content'
     assert article.category.id == 'a-test-category'
     assert article.is_beginner
@@ -671,9 +773,16 @@ def test_delete_article(client, test_db):
     client.post('/tags/create', headers=headers_authorization,
                 data=data_to_post_create)
 
+    # Creation of the author
+    data_to_post_create = {'name': 'a test author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
     # Creation of the article
     data_to_post_create = {"name": "a delete article",
-                           "author": "a test author",
+                           "author": "a-test-author",
                            "content": (BytesIO(b"a test content"), "test.txt"),
                            "category": "a-test-category",
                            "is_beginner": "True",
@@ -779,3 +888,90 @@ def test_delete_tag(client, test_db):
     query_tag = test_db.session.query(Tag)
     tags = [tag for tag in query_tag]
     assert len(tags) == 0
+
+
+def test_get_json_author(client, test_db, truncate):
+
+    # Creation of the author
+    data_to_post_create = {'name': 'an author for test json',
+                           'description': 'test author'}
+    client.post('/authors/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Tests
+    response = client.get('/authors/an-author-for-test-json/json',
+                          headers=headers_authorization)
+    assert response.status_code == 200
+    assert json.loads(response.data.decode('utf-8')) == {
+        'name': 'an author for test json',
+        'id': 'an-author-for-test-json',
+        'description': 'test author'}
+
+
+def test_modify_author(client, test_db, truncate):
+
+    # Creation of the author
+    data_to_post_create = {'name': 'a modify author',
+                           'description': 'test author'}
+    client.post('/authors/create',
+                headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Tests
+    data_to_post = {'name': 'another author'}
+    assert (client.post('/authors/a-modify-author/modify',
+                        headers=headers_authorization, data=data_to_post)
+            .status_code == 200)
+
+    query_author = test_db.session.query(Author)
+    authors = [author for author in query_author]
+    assert len(authors) == 1
+    author = authors[0]
+    assert author.name == 'another author'
+    assert author.id == 'a-modify-author'
+    assert author.description == 'test author'
+
+
+def test_create_author(client, test_db, truncate):
+
+    # Test with description
+    data_to_post = {"name": "a test author",
+                    "description": "an author description"}
+    assert client.post("authors/create",
+                       headers=headers_authorization,
+                       data=data_to_post).status_code == 200
+    query_author = test_db.session.query(Author)
+    authors = [author for author in query_author]
+    assert len(authors) == 1
+    author = authors[0]
+    assert author.name == 'a test author'
+    assert author.id == 'a-test-author'
+    assert author.description == 'an author description'
+
+    # Test without description
+    data_to_post = {"name": "a test author without desc"}
+    client.post("/authors/create",
+                headers=headers_authorization,
+                data=data_to_post)
+    query_author = (test_db.session.query(Author)
+                        .filter(Author.id == "a-test-author-without-desc"))
+    authors = [author for author in query_author]
+    assert len(authors) == 1
+    author = authors[0]
+    assert author.description is None
+
+
+def test_delete_author(client, test_db):
+
+    # Creation of the author
+    data_to_post_create = {'name': 'a delete author'}
+    client.post('/authors/create', headers=headers_authorization,
+                data=data_to_post_create)
+
+    # Tests
+    assert client.delete('/authors/a-delete-author/delete',
+                         headers=headers_authorization).status_code == 200
+
+    query_author = test_db.session.query(Author)
+    authors = [author for author in query_author]
+    assert len(authors) == 0
