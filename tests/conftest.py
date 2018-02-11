@@ -4,7 +4,7 @@ import pytest
 
 from blogapp.views import create_app
 from blogapp.database import db
-from blogapp.models import Article, Category, Tag
+from blogapp.models import Article, Category, Tag, Author
 
 @pytest.fixture
 def app():
@@ -23,6 +23,7 @@ def truncate():
     db.session.query(Tag).delete()
     db.session.query(Article).delete()
     db.session.query(Category).delete()
+    db.session.query(Author).delete()
     db.session.commit()
 
 headers_authorization = {

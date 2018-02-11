@@ -65,7 +65,6 @@ class Article(db.Model):
 
     id = db.Column(db.String(190), primary_key=True)
     name = db.Column(db.String(190))
-    author = db.Column(db.String(30))
     content = db.Column(db.String(100000))
     description = db.Column(db.String(2000))
     creation_date = db.Column(db.DateTime)
@@ -75,7 +74,10 @@ class Article(db.Model):
     image = db.Column(db.String(100), nullable=True)
     category_id = db.Column(db.String(50), db.ForeignKey('categories.id',
                                                          ondelete="CASCADE"))
+    author_id = db.Column(db.String(30), db.ForeignKey('authors.id',
+                                                       ondelete="CASCADE"))
 
+    author = db.relationship('Author', back_populates='articles')
     category = db.relationship('Category', back_populates='articles')
     tags = db.relationship('Tag', secondary=article_to_tag,
                            back_populates="articles")
@@ -85,10 +87,10 @@ class Article(db.Model):
         """
         tags = ','.join([t.name for t in self.tags])
         article_json = {"id": self.id, "name": self.name,
-                        "author": self.author, "content": self.content,
+                        "author": self.author_id, "content": self.content,
                         "is_beginner": self.is_beginner,
                         "description": self.description,
-                        "category_id": self.category_id, "tags": tags,
+                        "category_id": self.category.id, "tags": tags,
                         "difficulty": str(self.difficulty),
                         "image": self.image}
         return json.dumps(article_json)
@@ -100,7 +102,7 @@ class Article(db.Model):
         article_dict = {"name": self.name,
                         "creation_date": self.creation_date.strftime(
                             date_format),
-                        "author": self.author,
+                        "author": self.author.name,
                         "description": self.description,
                         "id": self.id,
                         "category": self.category.name,
@@ -128,3 +130,22 @@ class Tag(db.Model):
         tag_json = {"name": self.name, "id": self.id,
                     "description": self.description}
         return json.dumps(tag_json)
+
+
+class Author(db.Model):
+    """ Containes the information on an author
+    """
+    __tablename__ = "authors"
+
+    id = db.Column(db.String(30), primary_key = True)
+    name = db.Column(db.String(30))
+    description = db.Column(db.String(10000))
+
+    articles = db.relationship("Article", back_populates="author")
+
+    def to_json(self):
+        """ Return a json of the class
+        """
+        author_json = {"name": self.name, "id": self.id,
+                       "description": self.description}
+        return json.dumps(author_json)

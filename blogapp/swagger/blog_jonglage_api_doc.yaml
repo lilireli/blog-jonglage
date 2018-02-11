@@ -210,11 +210,6 @@ paths:
           description: Name of the article.
           required: false
           type: string
-        - name: author
-          in: formData
-          description: Author of the article.
-          required: false
-          type: string
         - name: description
           in: formData
           description: Description of the article.
@@ -348,4 +343,73 @@ paths:
           type: string
       tags:
         - Tags
+        
+
+  /authors/create:
+    post:
+      summary: Create one new author
+      parameters:
+        - name: name
+          in: formData
+          description: Name of the author
+          required: true
+          type: string
+        - name: description
+          in: formData
+          required: false
+          type: string
+      tags:
+        - Authors
+
+  /authors/{id}/json:
+    get:
+      summary: Retrieve one author by id
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the author.
+          required: true
+          type: string
+      tags:
+        - Authors
+
+  /authors/{id}/modify:
+    post:
+      summary: Modify one author by id
+      produces:
+        - text/html
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the author.
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: The name of the author.
+          required: False
+          type: string
+        - name: description
+          in: formData
+          description: Description of the author.
+          required: False
+          type: string
+      tags:
+        - Authors
+
+  /authors/{id}/delete:
+    delete:
+      summary: Delete one author
+      produces:
+        - test/html
+      parameters:
+        - name: id
+          in: path
+          description: Identifier of the author.
+          required: true
+          type: string
+      tags:
+        - Authors
         

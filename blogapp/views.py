@@ -15,12 +15,15 @@ from werkzeug.utils import secure_filename
 import markdown
 import wget
 
-from .models import Category, Article, Tag
+from .models import Category, Article, Tag, Author
 from .database import db
+from .exceptions import (TagNotExistingError, CategoryNotExistingError,
+                         AuthorNotExistingError)
 
 tags_blueprint = Blueprint('tags', __name__)
 articles_blueprint = Blueprint('articles', __name__)
 categories_blueprint = Blueprint('categories', __name__)
+authors_blueprint = Blueprint('authors', __name__)
 general_blueprint = Blueprint('general', __name__)
 
 # Use $abc$ for templates instead of {{abc}} because of conflict with vue.js
@@ -60,6 +63,7 @@ def create_app(test=False):
     app.register_blueprint(tags_blueprint, url_prefix='/tags')
     app.register_blueprint(articles_blueprint, url_prefix='/articles')
     app.register_blueprint(categories_blueprint, url_prefix='/categories')
+    app.register_blueprint(authors_blueprint, url_prefix='/authors')
     app.register_blueprint(general_blueprint)
 
     # Connexion information
@@ -135,8 +139,8 @@ def identifize(name):
     return str(id_art, 'utf-8')
 
 
-def get_or_create_tag(tags_name):
-    """Retrieve of the tags. If it doesn't exist, it is created
+def get_tags(tags_name):
+    """ Retrieve the tags. If one of them doesn't exists, return an error
     """
     tags = []
     for tag_name in tags_name:
@@ -145,15 +149,26 @@ def get_or_create_tag(tags_name):
         # We retrieve the tag if it exists
         if len(current_tags) == 1:
             tags.append(current_tags[0])
-        # Else we create it
+        # If not, we raise an exception
         else:
-            tag = Tag(name=tag_name,
-                      id=identifize(tag_name),
-                      description='')
-            db.session.add(tag)
-            db.session.commit()
-            tags.append(tag)
+            raise TagNotExistingError("This tag doesn't exists, you need to"
+                                       " create it: {tag_name}"
+                                       .format(tag_name=tag_name))
     return tags
+
+
+def get_existing_category(category_id):
+    """ Retrieve the given category. If it doesn't exist, return an error
+    """
+    query = db.session.query(Category).filter_by(id=category_id)
+    categories = query.all()
+    # We retrieve the category if it exists
+    if len(categories) == 1:
+        return categories[0]
+    else:
+        raise CategoryNotExistingError("This category doesn't exists, you need"
+                                       " to create it: {category_id}"
+                                       .format(category_id=category_id))
 
 
 def get_categories():
@@ -175,6 +190,20 @@ def get_categories():
     categories_all = journal_category + sorted(categories_filtered,
                                                key=lambda cat: cat['name'])
     return categories_all
+
+
+def get_existing_author(author_id):
+    """ Retrieve the given author. If it doesn't exist, return an error
+    """
+    query = db.session.query(Author).filter_by(id=author_id)
+    authors = query.all()
+    # We retrieve the author if it exists
+    if len(authors) == 1:
+        return authors[0]
+    else:
+        raise AuthorNotExistingError("This author doesn't exists, you need"
+                                     " to create it: {author_id}"
+                                     .format(author_id=author_id))
 
 
 def copy_static_file():
@@ -454,7 +483,7 @@ def get_article(article):
         # The data with wich fill in the page
         data = {
             "name": article.name,
-            "author": article.author,
+            "author": article.author.name,
             "description": article.description,
             "url": article.id,
             "category": article.category.name,
@@ -490,17 +519,30 @@ def create_article():
         id_art = identifize(request.form['name'])
 
         # Retrieve of the tags. If it doesn't exist, it is created
-        tags = get_or_create_tag(request.form['tags'].split(','))
+        try:
+            tags = get_tags(request.form['tags'].split(','))
+        except TagNotExistingError as e:
+            return Response(str(e))
+
+        try:
+            category = get_existing_category(request.form['category'])
+        except CategoryNotExistingError as e:
+            return Response(str(e))
+
+        try:
+            author = get_existing_author(request.form['author'])
+        except AuthorNotExistingError as e:
+            return Response(str(e))
 
         is_beginner = convert_to_bool(request.form['is_beginner'])
 
         article = Article(
-            name=request.form['name'], author=request.form['author'],
-            content=request.files['content'].read(),
-            category_id=request.form['category'], creation_date=now,
+            name=request.form['name'], author_id=request.form['author'],
+            content=request.files['content'].read(), author=author,
+            creation_date=now, category_id=category.id,
             last_modification_date=now, is_beginner=is_beginner,
             description=request.form['description'], id=id_art, tags=tags,
-            difficulty=request.form['difficulty'],
+            difficulty=request.form['difficulty'], category=category,
             image=request.form['image'] if 'image' in request.form else '')
         db.session.add(article)
         db.session.commit()
@@ -541,9 +583,6 @@ def modify_article(article_id):
             article.description = (request.form['description']
                                    if 'description' in request.form
                                    else article.description)
-            article.author = (request.form['author']
-                              if 'author' in request.form
-                              else article.author)
             article.content = (request.files['content'].read()
                                if 'content' in request.files
                                else article.content)
@@ -551,9 +590,6 @@ def modify_article(article_id):
                                        request.form['is_beginner'])
                                    if 'is_beginner' in request.form
                                    else article.is_beginner)
-            article.category_id = (request.form['category_id']
-                                   if 'category_id' in request.form
-                                   else article.category_id)
             article.difficulty = (int(request.form['difficulty'])
                                   if 'difficulty' in request.form
                                   else article.difficulty)
@@ -561,9 +597,12 @@ def modify_article(article_id):
                              if 'image' in request.form
                              else article.image)
 
-            # We have also to create the tags if they don't exist
+            # We have also to get the tags
             if 'tags' in request.form:
-                tags = get_or_create_tag(request.form['tags'].split(','))
+                try:
+                    tags = get_tags(request.form['tags'].split(','))
+                except TagNotExistingError as e:
+                    return Response(str(e))
                 article.tags = tags
 
             article.last_modification_date = now
@@ -672,3 +711,84 @@ def delete_tag(tag_id):
         # If there is no tags, return an error
         else:
             abort(404)
+
+# Routes for authors (retrieve in JSON and HTML, modify, delete, create)
+
+
+@authors_blueprint.route('/<author_id>/json')
+@auth.login_required
+def get_json_author(author_id):
+    """ Retrieve an author on JSON. Useful to modify it after
+    """
+    query = db.session.query(Author).filter_by(id=author_id)
+    authors = query.all()
+    if len(authors) == 1:
+        return authors[0].to_json()
+    else:
+        abort(404)
+
+
+@authors_blueprint.route('/<author_id>/modify', methods=['POST'])
+@auth.login_required
+def modify_author(author_id):
+    """ Modify an author. All the fields are optionnal
+    """
+    if request.method == 'POST':
+        query = db.session.query(Author).filter_by(id=author_id)
+        authors = query.all()
+
+        # Verify that the author exist
+        if len(authors) == 1:
+            author = authors[0]
+            author.name = (request.form['name']
+                                  if 'name' in request.form
+                                  else author.name)
+            author.description = (request.form['description']
+                                  if 'description' in request.form
+                                  else author.description)
+            db.session.commit()
+            return 'Author modified'
+
+        # If there is no authors, return an error
+        else:
+            abort(404)
+
+
+@authors_blueprint.route('/create', methods=['POST'])
+@auth.login_required
+def create_author():
+    """ Create an author
+    """
+    if request.method == 'POST':
+        description = (request.form['description']
+                       if 'description' in request.form else None)
+
+        author = Author(name=request.form['name'],
+                        description=description,
+                        id=identifize(request.form['name']))
+        db.session.add(author)
+        db.session.commit()
+        return Response('Author saved')
+
+
+@authors_blueprint.route('/<author_id>/delete', methods=['DELETE'])
+@auth.login_required
+def delete_author(author_id):
+    """ Delete an author
+    """
+    if request.method == 'DELETE':
+        query = db.session.query(Author).filter_by(id=author_id)
+        authors = query.all()
+
+        # Verify that the author exist
+        if len(authors) == 1:
+            author = authors[0]
+            db.session.delete(author)
+            db.session.commit()
+            return Response('Author deleted')
+
+        # If there is no authors, return an error
+        else:
+            abort(404)
+
+
