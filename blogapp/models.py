@@ -65,7 +65,7 @@ class Article(db.Model):
 
     id = db.Column(db.String(190), primary_key=True)
     name = db.Column(db.String(190))
-    content = db.Column(db.String(100000))
+    content = db.Column(db.Text)
     description = db.Column(db.String(2000))
     creation_date = db.Column(db.DateTime)
     last_modification_date = db.Column(db.DateTime)
